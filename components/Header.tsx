@@ -35,12 +35,6 @@ export default function Header({ onMenuToggle, currentPage }: HeaderProps) {
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
-            <Bell size={20} className="text-gray-600" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
-          </button>
           <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-2">
             <User size={20} className="text-gray-600" />
             <span className="text-sm font-medium text-gray-700 hidden sm:block">Admin</span>

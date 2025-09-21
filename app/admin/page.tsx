@@ -1,5 +1,5 @@
 import React from 'react';
-import { Car, Calendar, Users, FileText, MapPin } from 'lucide-react';
+import { Car, Calendar, Users, FileText, MapPin, Megaphone, Settings } from 'lucide-react';
 
 const stats = [
   { title: 'Total Layanan', value: '1,247', icon: <Car size={24} />, color: 'bg-blue-500' },
@@ -98,22 +98,26 @@ export default function MainContent() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 ">
           <div className="p-6 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800">Aksi Cepat</h3>
           </div>
-          <div className="p-6 space-y-3">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors">
-              Tambah Jadwal Baru
+          <div className="p-6 space-y-3 ">
+            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+              <Calendar size={20}/>
+              <span>Tambah Jadwal Baru</span> 
             </button>
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors">
-              Buat Pengumuman
+            <button className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+              <Megaphone size={20}/>
+              <span>Buat Pengumuman</span>
             </button>
-            <button className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors">
-              Buat Laporan
+            <button className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+              <FileText size={20}/>
+              <span>Buat Laporan</span> 
             </button>
-            <button className="w-full border bg-black hover:bg-gray-800 text-white p-3 rounded-lg font-medium transition-colors">
-              Pengaturan Sistem
+            <button className="w-full border bg-black hover:bg-gray-800 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+              <Settings size={20}/>
+              <span>Pengaturan Sistem</span> 
             </button>
           </div>
         </div>
