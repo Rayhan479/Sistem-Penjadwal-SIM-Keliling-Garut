@@ -1,8 +1,18 @@
 "use client";
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, MapPin, Clock, Calendar } from 'lucide-react';
+import ScheduleModal from '@/app/admin/jadwal/tambah/page';
 
-const scheduleData = [
+interface Schedule {
+  id: number;
+  tanggal: string;
+  lokasi: string;
+  waktuMulai: string;
+  waktuSelesai: string;
+  status: string;
+}
+
+const scheduleData: Schedule[] = [
   {
     id: 1,
     tanggal: '2025-01-20',
@@ -55,20 +65,47 @@ const scheduleData = [
 
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState(scheduleData);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
   const handleAddSchedule = () => {
-    // TODO: Implement add schedule modal/form
-    console.log('Add new schedule');
+    setEditingSchedule(null);
+    setIsModalOpen(true);
   };
 
   const handleEdit = (id: number) => {
-    // TODO: Implement edit schedule
-    console.log('Edit schedule:', id);
+    const schedule = schedules.find(s => s.id === id);
+    if (schedule) {
+      setEditingSchedule(schedule);
+      setIsModalOpen(true);
+    }
   };
 
   const handleDelete = (id: number) => {
-    // TODO: Implement delete confirmation
-    console.log('Delete schedule:', id);
+    if (window.confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+      setSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    }
+  };
+
+  const handleSaveSchedule = (scheduleData: Omit<Schedule, 'id'>) => {
+    if (editingSchedule) {
+      // Update existing schedule
+      setSchedules(prev => prev.map(schedule => 
+        schedule.id === editingSchedule.id 
+          ? { ...scheduleData, id: editingSchedule.id }
+          : schedule
+      ));
+    } else {
+      // Add new schedule
+      const newId = Math.max(...schedules.map(s => s.id)) + 1;
+      setSchedules(prev => [...prev, { ...scheduleData, id: newId }]);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingSchedule(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -206,6 +243,14 @@ export default function SchedulePage() {
           </table>
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      <ScheduleModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveSchedule}
+        editingSchedule={editingSchedule}
+      />
     </div>
   );
 }
