@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MapPin, Clock, AlertCircle } from 'lucide-react';
+import { X, Calendar, MapPin, Clock, AlertCircle, Upload, Image } from 'lucide-react';
 
 interface Schedule {
   id: number;
@@ -8,6 +8,7 @@ interface Schedule {
   waktuMulai: string;
   waktuSelesai: string;
   status: string;
+  gambar?: string;
 }
 
 interface ScheduleModalProps {
@@ -23,8 +24,11 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
     lokasi: '',
     waktuMulai: '',
     waktuSelesai: '',
-    status: 'terjadwal'
+    status: 'terjadwal',
+    gambar: ''
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -34,17 +38,22 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
         lokasi: editingSchedule.lokasi,
         waktuMulai: editingSchedule.waktuMulai,
         waktuSelesai: editingSchedule.waktuSelesai,
-        status: editingSchedule.status
+        status: editingSchedule.status,
+        gambar: editingSchedule.gambar || ''
       });
+      setPreviewUrl(editingSchedule.gambar || '');
     } else {
       setFormData({
         tanggal: '',
         lokasi: '',
         waktuMulai: '',
         waktuSelesai: '',
-        status: 'terjadwal'
+        status: 'terjadwal',
+        gambar: ''
       });
+      setPreviewUrl('');
     }
+    setSelectedFile(null);
     setErrors({});
   }, [editingSchedule, isOpen]);
 
@@ -79,9 +88,29 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
     e.preventDefault();
     
     if (validateForm()) {
-      onSave(formData);
+      const submitData = { ...formData };
+      if (selectedFile) {
+        submitData.gambar = URL.createObjectURL(selectedFile);
+      }
+      onSave(submitData);
       onClose();
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setFormData(prev => ({ ...prev, gambar: url }));
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedFile(null);
+    setPreviewUrl('');
+    setFormData(prev => ({ ...prev, gambar: '' }));
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -217,6 +246,46 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
               <option value="selesai">Selesai</option>
               <option value="dibatalkan">Dibatalkan</option>
             </select>
+          </div>
+
+          {/* Gambar */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Image size={16} className="inline mr-2" />
+              Gambar Lokasi (Opsional)
+            </label>
+            
+            {!previewUrl ? (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600">Klik untuk upload gambar</p>
+                  <p className="text-xs text-gray-400 mt-1">PNG, JPG hingga 5MB</p>
+                </label>
+              </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-48 object-cover rounded-lg border"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Modal Footer */}

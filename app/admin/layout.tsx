@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import AnnouncementPage from "@/app/admin/pengumuman/page";
 import SchedulePage from "@/app/admin/jadwal/page";
 import ReportPage from "@/app/admin/laporan/page";
+import SettingsPage from "@/app/admin/pengaturan/page";
 import "../globals.css";
 import MainContent from "@/app/admin/page";
 
@@ -25,7 +26,8 @@ function App() {
       // Add other cases for different pages as needed
       case "laporan":
         return <ReportPage />;
-
+      case "pengaturan":
+        return <SettingsPage />;
       case "beranda":
       default:
         return <MainContent />;

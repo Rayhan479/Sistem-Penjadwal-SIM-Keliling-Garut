@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, MapPin, Clock, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Clock, Calendar, Image } from 'lucide-react';
 import ScheduleModal from '@/app/admin/jadwal/tambah/page';
 
 interface Schedule {
@@ -10,6 +10,7 @@ interface Schedule {
   waktuMulai: string;
   waktuSelesai: string;
   status: string;
+  gambar?: string;
 }
 
 const scheduleData: Schedule[] = [
@@ -19,7 +20,8 @@ const scheduleData: Schedule[] = [
     lokasi: 'Kelurahan Menteng',
     waktuMulai: '08:00',
     waktuSelesai: '16:00',
-    status: 'terjadwal'
+    status: 'terjadwal',
+    gambar: undefined
   },
   {
     id: 2,
@@ -174,6 +176,9 @@ export default function SchedulePage() {
                   Lokasi
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Gambar
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Waktu Mulai
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -203,6 +208,19 @@ export default function SchedulePage() {
                       <MapPin size={14} className="text-gray-400 mr-2" />
                       {schedule.lokasi}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {schedule.gambar ? (
+                      <img
+                        src={schedule.gambar}
+                        alt="Gambar lokasi"
+                        className="w-16 h-12 object-cover rounded-lg border"
+                      />
+                    ) : (
+                      <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Image size={16} className="text-gray-400" />
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-700">

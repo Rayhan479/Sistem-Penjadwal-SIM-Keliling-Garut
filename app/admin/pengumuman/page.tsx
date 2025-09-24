@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, FileText, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Calendar, Image } from 'lucide-react';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 
 interface Announcement {
@@ -8,6 +8,7 @@ interface Announcement {
   judul: string;
   tanggal: string;
   isi: string;
+  gambar?: string;
 }
 
 const announcementData: Announcement[] = [
@@ -15,7 +16,8 @@ const announcementData: Announcement[] = [
     id: 1,
     judul: 'Perubahan Jadwal SIM Keliling Minggu Ini',
     tanggal: '2025-01-15',
-    isi: 'Diinformasikan kepada seluruh masyarakat bahwa jadwal SIM Keliling untuk minggu ini mengalami perubahan. Layanan di Kelurahan Menteng dipindahkan dari tanggal 20 Januari menjadi 22 Januari 2025. Mohon perhatian dan terima kasih atas pengertiannya.'
+    isi: 'Diinformasikan kepada seluruh masyarakat bahwa jadwal SIM Keliling untuk minggu ini mengalami perubahan. Layanan di Kelurahan Menteng dipindahkan dari tanggal 20 Januari menjadi 22 Januari 2025. Mohon perhatian dan terima kasih atas pengertiannya.',
+    gambar: undefined
   },
   {
     id: 2,
@@ -142,6 +144,9 @@ export default function AnnouncementPage() {
                   Tanggal
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Gambar
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Isi
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -165,6 +170,19 @@ export default function AnnouncementPage() {
                         <div className="text-xs text-gray-500">{announcement.tanggal}</div>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {announcement.gambar ? (
+                      <img
+                        src={announcement.gambar}
+                        alt="Gambar pengumuman"
+                        className="w-16 h-12 object-cover rounded-lg border"
+                      />
+                    ) : (
+                      <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Image size={16} className="text-gray-400" />
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-700 max-w-md">

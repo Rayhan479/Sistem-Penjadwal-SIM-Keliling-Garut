@@ -1,14 +1,22 @@
 "use client";
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, MapPin, FileText, FileDown  } from 'lucide-react';
+import ReportModal from '@/app/admin/laporan/tambah/page';
 
-const reportData = [
+interface Report {
+  id: number;
+  tanggal: string;
+  lokasi: string;
+  jumlah: string;
+  status: string;
+}
+
+const reportData: Report[] = [
   {
     id: 1,
     tanggal: '2025-01-20',
     lokasi: 'Kelurahan Menteng',
     jumlah: '99',
-    
     status: 'terjadwal'
   },
   {
@@ -16,7 +24,6 @@ const reportData = [
     tanggal: '2025-01-21',
     lokasi: 'Kelurahan Kemang',
     jumlah: '50',
-    
     status: 'berlangsung'
   },
   {
@@ -31,7 +38,6 @@ const reportData = [
     tanggal: '2025-01-23',
     lokasi: 'Kelurahan Kuningan',
     jumlah: '87',
-    
     status: 'selesai'
   },
   {
@@ -39,28 +45,52 @@ const reportData = [
     tanggal: '2025-01-24',
     lokasi: 'Kelurahan Cikini',
     jumlah: '30',
-    
     status: 'dibatalkan'
-  },
-  
+  }
 ];
 
 export default function ReportPage() {
-  const [reports, setReport] = useState(reportData);
+  const [reports, setReports] = useState(reportData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
 
   const handleAddReport = () => {
-    // TODO: Implement add schedule modal/form
-    console.log('Add new report');
+    setEditingReport(null);
+    setIsModalOpen(true);
   };
 
   const handleEdit = (id: number) => {
-    // TODO: Implement edit schedule
-    console.log('Edit report:', id);
+    const report = reports.find(r => r.id === id);
+    if (report) {
+      setEditingReport(report);
+      setIsModalOpen(true);
+    }
   };
 
   const handleDelete = (id: number) => {
-    // TODO: Implement delete confirmation
-    console.log('Delete report:', id);
+    if (window.confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+      setReports(prev => prev.filter(report => report.id !== id));
+    }
+  };
+
+  const handleSaveReport = (reportData: Omit<Report, 'id'>) => {
+    if (editingReport) {
+      // Update existing report
+      setReports(prev => prev.map(report => 
+        report.id === editingReport.id 
+          ? { ...reportData, id: editingReport.id }
+          : report
+      ));
+    } else {
+      // Add new report
+      const newId = Math.max(...reports.map(r => r.id)) + 1;
+      setReports(prev => [...prev, { ...reportData, id: newId }]);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingReport(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -111,7 +141,6 @@ export default function ReportPage() {
             </button>
 
             <button
-                onClick={handleAddReport}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
             >
                 <FileDown  size={20} />
@@ -199,6 +228,14 @@ export default function ReportPage() {
           </table>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveReport}
+        editingReport={editingReport}
+      />
     </div>
   );
 }
