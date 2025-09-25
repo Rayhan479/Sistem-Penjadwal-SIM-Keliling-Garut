@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save } from 'lucide-react';
 import FAQModal from '@/app/admin/pengaturan/tambah/page';

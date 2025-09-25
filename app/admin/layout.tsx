@@ -6,12 +6,14 @@ import AnnouncementPage from "@/app/admin/pengumuman/page";
 import SchedulePage from "@/app/admin/jadwal/page";
 import ReportPage from "@/app/admin/laporan/page";
 import SettingsPage from "@/app/admin/pengaturan/page";
+import HomePage from "@/app/page";
 import "../globals.css";
 import MainContent from "@/app/admin/page";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("beranda");
+  
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -28,6 +30,8 @@ function App() {
         return <ReportPage />;
       case "pengaturan":
         return <SettingsPage />;
+      case "home":
+        return <HomePage />;
       case "beranda":
       default:
         return <MainContent />;
