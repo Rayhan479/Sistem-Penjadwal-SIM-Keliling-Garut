@@ -18,9 +18,9 @@ export default function Navbar() {
             <a href="#persyaratan" className="hover:text-blue-200 transition-colors">Persyaratan</a>
             <a href="/faq" className="hover:text-blue-200 transition-colors">FAQ</a>
             <a href="/kontak" className="hover:text-blue-200 transition-colors">Kontak</a>
-            <button className="bg-white text-[#2622FF] px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+            <a href="/login" className="bg-white text-[#2622FF] px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
               Masuk
-            </button>
+            </a>
           </nav>
         </div>
       </div>

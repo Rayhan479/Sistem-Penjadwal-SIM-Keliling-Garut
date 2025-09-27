@@ -29,8 +29,6 @@ function AdminLayout() {
         return <ReportPage />;
       case "pengaturan":
         return <SettingsPage />;
-      case "home":
-        return <HomePage />;
       case "beranda":
       default:
         return <MainContent />;

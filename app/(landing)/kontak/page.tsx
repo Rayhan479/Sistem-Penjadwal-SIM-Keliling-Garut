@@ -270,36 +270,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="bg-red-600 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-xl font-bold mb-2">Kontak Darurat</h3>
-          <p className="mb-4">Untuk keperluan mendesak terkait layanan SIM Keliling</p>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6">
-            <a
-              href="tel:112"
-              className="flex items-center space-x-2 bg-white text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-            >
-              <Phone size={20} />
-              <span>112 (Emergency)</span>
-            </a>
-            <a
-              href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-            >
-              <MessageCircle size={20} />
-              <span>WhatsApp</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="fixed bottom-6 right-6 z-50">
-        <button className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-colors">
-          <MessageCircle size={24} />
-        </button>
-      </div>
+      
       
     </div>
   );
