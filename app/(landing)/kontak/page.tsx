@@ -178,7 +178,7 @@ export default function ContactPage() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`${social.color} text-white p-4 rounded-lg transition-colors flex flex-col items-center space-y-2 hover:transform hover:scale-105 transition-transform`}
+                    className={`${social.color} text-white p-4 rounded-lg  flex flex-col items-center space-y-2 hover:transform hover:scale-105 transition-transform`}
                   >
                     {social.icon}
                     <span className="font-medium">{social.name}</span>

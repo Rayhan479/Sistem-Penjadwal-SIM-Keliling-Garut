@@ -90,11 +90,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        {/* <div className="mt-6 text-center">
           <link href="/" className="text-blue-600 hover:text-blue-800 text-sm">
             ← Kembali ke Beranda
           </link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

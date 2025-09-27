@@ -10,7 +10,6 @@ import {
   FileCheck,
   CreditCard,
   Clock3,
-  MessageCircle,
   ExternalLink
 } from 'lucide-react';
 
