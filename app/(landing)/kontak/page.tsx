@@ -11,8 +11,7 @@ import {
   MessageCircle,
   ExternalLink
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 
 const contactInfo = {
   address: 'Jl. Jenderal Sudirman No. 123, Garut, Jawa Barat 44151',
@@ -52,10 +51,7 @@ const socialMedia = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Navbar */}
-        <Navbar />
 
-      {/* Header */}
       <div className="bg-blue-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -67,12 +63,9 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Contact Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left Column - Contact Info */}
           <div className="space-y-8">
-            {/* Contact Information */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <Phone className="mr-3 text-blue-600" size={28} />
@@ -80,7 +73,6 @@ export default function ContactPage() {
               </h2>
               
               <div className="space-y-6">
-                {/* Address */}
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
                     <MapPin className="text-blue-600" size={24} />
@@ -91,7 +83,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Email */}
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
                     <Mail className="text-blue-600" size={24} />
@@ -107,7 +98,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Phone */}
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
                     <Phone className="text-blue-600" size={24} />
@@ -123,7 +113,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* WhatsApp */}
                 <div className="flex items-start space-x-4">
                   <div className="bg-green-100 p-3 rounded-lg">
                     <MessageCircle className="text-green-600" size={24} />
@@ -144,7 +133,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Working Hours */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <Clock className="mr-3 text-blue-600" size={28} />
@@ -173,9 +161,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Right Column - Social Media & Map */}
           <div className="space-y-8">
-            {/* Social Media */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 Media Sosial
@@ -207,7 +193,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Map Placeholder */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 Lokasi Kantor
@@ -234,7 +219,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Quick Contact Form */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 Kirim Pesan Cepat
@@ -286,7 +270,6 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Emergency Contact Banner */}
       <div className="bg-red-600 text-white py-8">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-xl font-bold mb-2">Kontak Darurat</h3>
@@ -312,14 +295,12 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Floating WhatsApp Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <button className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-colors">
           <MessageCircle size={24} />
         </button>
       </div>
-        {/* Footer */}
-        <Footer />
+      
     </div>
   );
 }

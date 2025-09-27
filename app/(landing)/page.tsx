@@ -13,8 +13,6 @@ import {
   MessageCircle,
   ExternalLink
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 const upcomingSchedules = [
   {
@@ -99,7 +97,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section 
@@ -304,14 +301,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
 
-      {/* Floating WhatsApp Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-colors">
-          <MessageCircle size={24} />
-        </button>
-      </div>
+      
     </div>
   );
 }

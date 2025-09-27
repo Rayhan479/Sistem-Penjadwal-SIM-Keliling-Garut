@@ -6,11 +6,10 @@ import AnnouncementPage from "@/app/admin/pengumuman/page";
 import SchedulePage from "@/app/admin/jadwal/page";
 import ReportPage from "@/app/admin/laporan/page";
 import SettingsPage from "@/app/admin/pengaturan/page";
-import HomePage from "@/app/page";
 import "../globals.css";
 import MainContent from "@/app/admin/page";
 
-function App() {
+function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("beranda");
   
@@ -56,4 +55,4 @@ function App() {
   );
 }
 
-export default App;
+export default AdminLayout;

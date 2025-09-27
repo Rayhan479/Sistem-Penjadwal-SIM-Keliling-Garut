@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Calendar, MapPin, Clock, Search, Filter, ChevronDown } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 
 interface Schedule {
   id: number;
@@ -153,19 +152,16 @@ export default function LandingSchedulePage() {
   const handleFilter = () => {
     let filtered = scheduleData;
 
-    // Filter by date
     if (selectedDate) {
       filtered = filtered.filter(schedule => schedule.tanggal === selectedDate);
     }
 
-    // Filter by status
     if (selectedStatus !== 'Semua Status') {
       filtered = filtered.filter(schedule => 
         schedule.status === selectedStatus.toLowerCase()
       );
     }
 
-    // Filter by location
     if (selectedLocation !== 'Semua Lokasi') {
       filtered = filtered.filter(schedule => 
         schedule.lokasi.toLowerCase().includes(selectedLocation.toLowerCase())
@@ -184,8 +180,6 @@ export default function LandingSchedulePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        <Navbar />
-      {/* Header */}
       <div className="bg-blue-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -197,12 +191,10 @@ export default function LandingSchedulePage() {
         </div>
       </div>
 
-      {/* Filter Section */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-4 items-end">
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar size={16} className="inline mr-2" />
@@ -216,7 +208,6 @@ export default function LandingSchedulePage() {
                 />
               </div>
 
-              {/* Status Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Filter size={16} className="inline mr-2" />
@@ -236,7 +227,6 @@ export default function LandingSchedulePage() {
                 </div>
               </div>
 
-              {/* Location Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <MapPin size={16} className="inline mr-2" />
@@ -257,7 +247,6 @@ export default function LandingSchedulePage() {
               </div>
             </div>
 
-            {/* Filter Buttons */}
             <div className="flex gap-2">
               <button
                 onClick={handleFilter}
@@ -277,7 +266,6 @@ export default function LandingSchedulePage() {
         </div>
       </div>
 
-      {/* Schedule Grid */}
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
@@ -340,7 +328,6 @@ export default function LandingSchedulePage() {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
