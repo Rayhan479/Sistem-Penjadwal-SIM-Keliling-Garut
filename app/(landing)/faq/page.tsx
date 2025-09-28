@@ -121,8 +121,8 @@ export default function FAQPage() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-6 py-3 rounded-full font-medium transition-colors ${
                   selectedCategory === category
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    ? 'bg-[#2622FF] text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-[#2622FF]'
                 }`}
               >
                 {category}
@@ -151,7 +151,7 @@ export default function FAQPage() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
-                      <span className="inline-block px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full mr-3">
+                      <span className="inline-block px-3 py-1 text-xs font-medium bg-blue-100 text-[#2622FF] rounded-full mr-3">
                         {faq.kategori}
                       </span>
                     </div>
@@ -161,7 +161,7 @@ export default function FAQPage() {
                   </div>
                   <div className="ml-4">
                     {openFAQ === faq.id ? (
-                      <ChevronUp className="text-blue-600" size={24} />
+                      <ChevronUp className="text-[#2622FF]" size={24} />
                     ) : (
                       <ChevronDown className="text-gray-400" size={24} />
                     )}
@@ -193,7 +193,7 @@ export default function FAQPage() {
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <a
               href="tel:(0262)1500000"
-              className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 bg-[#2622FF] text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-900 transition-colors"
             >
               <Phone size={20} />
               <span>(0262) 1500-000</span>

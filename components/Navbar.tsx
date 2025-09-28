@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function Navbar() {
   return (
@@ -7,9 +8,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-white p-2 rounded-lg">
-              <span className="text-[#2622FF] font-bold text-sm">SIM</span>
+              <Link href='/' className="text-[#2622FF] font-bold text-sm">SIM</Link>
             </div>
-            <span className="text-xl font-bold">SIM Keliling Garut</span>
+            <Link href="/" className="text-xl font-bold">SIM Keliling Garut</Link>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">

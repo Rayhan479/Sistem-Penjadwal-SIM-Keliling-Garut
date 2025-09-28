@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, Clock, Search, Filter, ChevronDown } from 'lucide-react';
 
 
-
 interface Schedule {
   id: number;
   tanggal: string;
@@ -251,7 +250,7 @@ export default function LandingSchedulePage() {
             <div className="flex gap-2">
               <button
                 onClick={handleFilter}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-[#2622FF] hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Search size={16} />
                 <span>Cari</span>
@@ -307,20 +306,20 @@ export default function LandingSchedulePage() {
                   
                   <div className="space-y-2 text-gray-600 mb-4">
                     <div className="flex items-center">
-                      <Calendar size={16} className="mr-2 text-blue-600" />
+                      <Calendar size={16} className="mr-2 text-[#2622FF]" />
                       <span className="text-sm">{formatDate(schedule.tanggal)}</span>
                     </div>
                     <div className="flex items-center">
-                      <Clock size={16} className="mr-2 text-blue-600" />
+                      <Clock size={16} className="mr-2 text-[#2622FF]" />
                       <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
                     </div>
                     <div className="flex items-center">
-                      <MapPin size={16} className="mr-2 text-blue-600" />
+                      <MapPin size={16} className="mr-2 text-[#2622FF]" />
                       <span className="text-sm">{schedule.tempat}</span>
                     </div>
                   </div>
                   
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors">
+                  <button className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-2 rounded-lg font-medium transition-colors">
                     Lihat Detail Lokasi
                   </button>
                 </div>

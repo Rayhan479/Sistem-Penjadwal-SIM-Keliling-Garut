@@ -68,14 +68,14 @@ export default function ContactPage() {
           <div className="space-y-8">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <Phone className="mr-3 text-blue-600" size={28} />
+                <Phone className="mr-3 text-[#2622FF]" size={28} />
                 Informasi Kontak
               </h2>
               
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
-                    <MapPin className="text-blue-600" size={24} />
+                    <MapPin className="text-[#2622FF]" size={24} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Alamat</h3>
@@ -85,7 +85,7 @@ export default function ContactPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
-                    <Mail className="text-blue-600" size={24} />
+                    <Mail className="text-[#2622FF]" size={24} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
@@ -100,7 +100,7 @@ export default function ContactPage() {
 
                 <div className="flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg">
-                    <Phone className="text-blue-600" size={24} />
+                    <Phone className="text-[#2622FF]" size={24} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Telepon</h3>
@@ -135,7 +135,7 @@ export default function ContactPage() {
 
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <Clock className="mr-3 text-blue-600" size={28} />
+                <Clock className="mr-3 text-[#2622FF]" size={28} />
                 Jam Kerja
               </h2>
               
@@ -153,7 +153,7 @@ export default function ContactPage() {
               </div>
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-[#2622FF]">
                   <strong>Catatan:</strong> Layanan SIM Keliling beroperasi sesuai jadwal yang telah ditentukan. 
                   Silakan cek jadwal terbaru di halaman jadwal.
                 </p>
@@ -211,7 +211,7 @@ export default function ContactPage() {
                   href={`https://maps.google.com/?q=${encodeURIComponent(contactInfo.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                  className="inline-flex items-center text-[#2622FF] hover:text-blue-900 transition-colors"
                 >
                   <ExternalLink size={16} className="mr-2" />
                   Buka di Google Maps
@@ -260,7 +260,7 @@ export default function ContactPage() {
                 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
+                  className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-3 rounded-lg font-medium transition-colors"
                 >
                   Kirim Pesan
                 </button>
