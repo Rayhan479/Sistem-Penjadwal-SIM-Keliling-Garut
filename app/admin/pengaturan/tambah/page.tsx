@@ -3,8 +3,9 @@ import { X, HelpCircle, MessageSquare, AlertCircle } from 'lucide-react';
 
 interface FAQ {
   id: number;
-  pertanyaan: string;
-  jawaban: string;
+  question: string;
+  answer: string;
+  category: string;
 }
 
 interface FAQModalProps {
@@ -16,21 +17,24 @@ interface FAQModalProps {
 
 export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQModalProps) {
   const [formData, setFormData] = useState({
-    pertanyaan: '',
-    jawaban: ''
+    question: '',
+    answer: '',
+    category: 'Umum'
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (editingFAQ) {
       setFormData({
-        pertanyaan: editingFAQ.pertanyaan,
-        jawaban: editingFAQ.jawaban
+        question: editingFAQ.question,
+        answer: editingFAQ.answer,
+        category: editingFAQ.category || 'Umum'
       });
     } else {
       setFormData({
-        pertanyaan: '',
-        jawaban: ''
+        question: '',
+        answer: '',
+        category: 'Umum'
       });
     }
     setErrors({});
@@ -39,12 +43,16 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.pertanyaan.trim()) {
-      newErrors.pertanyaan = 'Pertanyaan harus diisi';
+    if (!formData.question.trim()) {
+      newErrors.question = 'Pertanyaan harus diisi';
     }
 
-    if (!formData.jawaban.trim()) {
-      newErrors.jawaban = 'Jawaban harus diisi';
+    if (!formData.answer.trim()) {
+      newErrors.answer = 'Jawaban harus diisi';
+    }
+
+    if (!formData.category.trim()) {
+      newErrors.category = 'Kategori harus diisi';
     }
 
     setErrors(newErrors);
@@ -97,17 +105,43 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
             </label>
             <input
               type="text"
-              value={formData.pertanyaan}
-              onChange={(e) => handleInputChange('pertanyaan', e.target.value)}
+              value={formData.question}
+              onChange={(e) => handleInputChange('question', e.target.value)}
               placeholder="Masukkan pertanyaan yang sering ditanyakan"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.pertanyaan ? 'border-red-500' : 'border-gray-300'
+                errors.question ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {errors.pertanyaan && (
+            {errors.question && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
-                {errors.pertanyaan}
+                {errors.question}
+              </p>
+            )}
+          </div>
+
+          {/* Kategori */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Kategori
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => handleInputChange('category', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.category ? 'border-red-500' : 'border-gray-300'
+              }`}
+            >
+              <option value="Umum">Umum</option>
+              <option value="Jadwal">Jadwal</option>
+              <option value="Persyaratan">Persyaratan</option>
+              <option value="Layanan">Layanan</option>
+              <option value="Teknis">Teknis</option>
+            </select>
+            {errors.category && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <AlertCircle size={14} className="mr-1" />
+                {errors.category}
               </p>
             )}
           </div>
@@ -119,18 +153,18 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
               Jawaban
             </label>
             <textarea
-              value={formData.jawaban}
-              onChange={(e) => handleInputChange('jawaban', e.target.value)}
+              value={formData.answer}
+              onChange={(e) => handleInputChange('answer', e.target.value)}
               placeholder="Masukkan jawaban untuk pertanyaan tersebut..."
               rows={6}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical ${
-                errors.jawaban ? 'border-red-500' : 'border-gray-300'
+                errors.answer ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {errors.jawaban && (
+            {errors.answer && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
-                {errors.jawaban}
+                {errors.answer}
               </p>
             )}
           </div>

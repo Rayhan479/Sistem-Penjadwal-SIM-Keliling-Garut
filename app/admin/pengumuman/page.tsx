@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FileText, Calendar, Image } from 'lucide-react';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 
@@ -11,42 +11,8 @@ interface Announcement {
   gambar?: string;
 }
 
-const announcementData: Announcement[] = [
-  {
-    id: 1,
-    judul: 'Perubahan Jadwal SIM Keliling Minggu Ini',
-    tanggal: '2025-01-15',
-    isi: 'Diinformasikan kepada seluruh masyarakat bahwa jadwal SIM Keliling untuk minggu ini mengalami perubahan. Layanan di Kelurahan Menteng dipindahkan dari tanggal 20 Januari menjadi 22 Januari 2025. Mohon perhatian dan terima kasih atas pengertiannya.',
-    gambar: undefined
-  },
-  {
-    id: 2,
-    judul: 'Syarat Perpanjangan SIM yang Perlu Dipersiapkan',
-    tanggal: '2025-01-12',
-    isi: 'Untuk mempercepat proses perpanjangan SIM, pastikan Anda membawa: 1) KTP asli dan fotokopi, 2) SIM lama, 3) Surat keterangan sehat dari dokter, 4) Pas foto 4x6 latar belakang merah sebanyak 2 lembar. Proses perpanjangan memakan waktu sekitar 30-45 menit.'
-  },
-  {
-    id: 3,
-    judul: 'Pembukaan Layanan SIM Keliling di Lokasi Baru',
-    tanggal: '2025-01-10',
-    isi: 'Mulai bulan ini, layanan SIM Keliling akan hadir di 3 lokasi baru: Kelurahan Pancoran, Kelurahan Mampang, dan Kelurahan Pasar Minggu. Jadwal lengkap dapat dilihat di halaman jadwal atau menghubungi call center kami di 021-1500-000.'
-  },
-  {
-    id: 4,
-    judul: 'Libur Layanan SIM Keliling Hari Raya',
-    tanggal: '2025-01-08',
-    isi: 'Dalam rangka memperingati Hari Raya Nyepi, layanan SIM Keliling akan diliburkan pada tanggal 29 Maret 2025. Layanan akan kembali normal pada tanggal 30 Maret 2025. Mohon maaf atas ketidaknyamanan ini.'
-  },
-  {
-    id: 5,
-    judul: 'Tips Keselamatan Berkendara di Musim Hujan',
-    tanggal: '2025-01-05',
-    isi: 'Memasuki musim hujan, kami mengingatkan pentingnya keselamatan berkendara. Pastikan kondisi ban dalam keadaan baik, gunakan lampu saat hujan, jaga jarak aman dengan kendaraan lain, dan hindari genangan air yang dalam. Keselamatan adalah prioritas utama.'
-  }
-];
-
 export default function AnnouncementPage() {
-  const [announcements, setAnnouncements] = useState(announcementData);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
 
@@ -63,24 +29,52 @@ export default function AnnouncementPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
-      setAnnouncements(prev => prev.filter(announcement => announcement.id !== id));
+      try {
+        await fetch(`/api/pengumuman/${id}`, { method: 'DELETE' });
+        fetchAnnouncements();
+      } catch (error) {
+        console.error('Error deleting announcement:', error);
+      }
     }
   };
 
-  const handleSaveAnnouncement = (announcementData: Omit<Announcement, 'id'>) => {
-    if (editingAnnouncement) {
-      // Update existing announcement
-      setAnnouncements(prev => prev.map(announcement => 
-        announcement.id === editingAnnouncement.id 
-          ? { ...announcementData, id: editingAnnouncement.id }
-          : announcement
-      ));
-    } else {
-      // Add new announcement
-      const newId = Math.max(...announcements.map(a => a.id)) + 1;
-      setAnnouncements(prev => [...prev, { ...announcementData, id: newId }]);
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await fetch('/api/pengumuman');
+      const data = await response.json();
+      setAnnouncements(data.map((item: any) => ({
+        ...item,
+        tanggal: item.tanggal.split('T')[0]
+      })));
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+    }
+  };
+
+  const handleSaveAnnouncement = async (announcementData: Omit<Announcement, 'id'>) => {
+    try {
+      if (editingAnnouncement) {
+        await fetch(`/api/pengumuman/${editingAnnouncement.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(announcementData)
+        });
+      } else {
+        await fetch('/api/pengumuman', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(announcementData)
+        });
+      }
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error saving announcement:', error);
     }
   };
 

@@ -11,8 +11,9 @@ interface ContactInfo {
 
 interface FAQ {
   id: number;
-  pertanyaan: string;
-  jawaban: string;
+  question: string;
+  answer: string;
+  category: string;
 }
 
 const initialContactInfo: ContactInfo = {
@@ -21,37 +22,30 @@ const initialContactInfo: ContactInfo = {
   address: 'Jl. Jenderal Sudirman No. 123, Jakarta Pusat 10270'
 };
 
-const initialFAQs: FAQ[] = [
-  {
-    id: 1,
-    pertanyaan: 'Apa saja syarat untuk perpanjangan SIM?',
-    jawaban: 'Syarat perpanjangan SIM meliputi: KTP asli dan fotokopi, SIM lama, surat keterangan sehat dari dokter, dan pas foto 4x6 latar belakang merah sebanyak 2 lembar.'
-  },
-  {
-    id: 2,
-    pertanyaan: 'Berapa lama proses perpanjangan SIM?',
-    jawaban: 'Proses perpanjangan SIM memakan waktu sekitar 30-45 menit, tergantung antrian dan kelengkapan dokumen yang dibawa.'
-  },
-  {
-    id: 3,
-    pertanyaan: 'Apakah bisa perpanjangan SIM untuk orang lain?',
-    jawaban: 'Perpanjangan SIM harus dilakukan oleh pemilik SIM yang bersangkutan. Tidak dapat diwakilkan kepada orang lain.'
-  },
-  {
-    id: 4,
-    pertanyaan: 'Bagaimana cara mengetahui jadwal SIM Keliling?',
-    jawaban: 'Jadwal SIM Keliling dapat dilihat di website resmi, aplikasi mobile, atau menghubungi call center di nomor 021-1500-000.'
-  },
-  {
-    id: 5,
-    pertanyaan: 'Apakah ada biaya untuk layanan SIM Keliling?',
-    jawaban: 'Biaya perpanjangan SIM sesuai dengan tarif resmi yang berlaku. Untuk SIM A: Rp 120.000, SIM B1: Rp 100.000, SIM C: Rp 75.000.'
-  }
-];
+
 
 export default function SettingsPage() {
   const [contactInfo, setContactInfo] = useState<ContactInfo>(initialContactInfo);
-  const [faqs, setFAQs] = useState<FAQ[]>(initialFAQs);
+  const [faqs, setFAQs] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchFAQs = async () => {
+    try {
+      const response = await fetch('/api/faq');
+      if (response.ok) {
+        const data = await response.json();
+        setFAQs(data);
+      }
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchFAQs();
+  }, []);
   const [isContactEditing, setIsContactEditing] = useState(false);
   const [isFAQModalOpen, setIsFAQModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
@@ -89,24 +83,48 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDeleteFAQ = (id: number) => {
+  const handleDeleteFAQ = async (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus FAQ ini?')) {
-      setFAQs(prev => prev.filter(faq => faq.id !== id));
+      try {
+        const response = await fetch(`/api/faq/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setFAQs(prev => prev.filter(faq => faq.id !== id));
+        }
+      } catch (error) {
+        console.error('Error deleting FAQ:', error);
+      }
     }
   };
 
-  const handleSaveFAQ = (faqData: Omit<FAQ, 'id'>) => {
-    if (editingFAQ) {
-      // Update existing FAQ
-      setFAQs(prev => prev.map(faq => 
-        faq.id === editingFAQ.id 
-          ? { ...faqData, id: editingFAQ.id }
-          : faq
-      ));
-    } else {
-      // Add new FAQ
-      const newId = Math.max(...faqs.map(f => f.id)) + 1;
-      setFAQs(prev => [...prev, { ...faqData, id: newId }]);
+  const handleSaveFAQ = async (faqData: Omit<FAQ, 'id'>) => {
+    try {
+      if (editingFAQ) {
+        const response = await fetch(`/api/faq/${editingFAQ.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(faqData)
+        });
+        if (response.ok) {
+          const updatedFaq = await response.json();
+          setFAQs(prev => prev.map(faq => 
+            faq.id === editingFAQ.id ? updatedFaq : faq
+          ));
+        }
+      } else {
+        const response = await fetch('/api/faq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(faqData)
+        });
+        if (response.ok) {
+          const newFaq = await response.json();
+          setFAQs(prev => [newFaq, ...prev]);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving FAQ:', error);
     }
   };
 
@@ -252,6 +270,9 @@ export default function SettingsPage() {
                   Pertanyaan
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kategori
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jawaban
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -260,16 +281,33 @@ export default function SettingsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {faqs.map((faq) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : faqs.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                    Belum ada FAQ
+                  </td>
+                </tr>
+              ) : faqs.map((faq) => (
                 <tr key={faq.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {faq.pertanyaan}
+                      {faq.question}
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {faq.category || 'Umum'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
                     <div className="text-sm text-gray-700 max-w-md">
-                      {truncateText(faq.jawaban, 100)}
+                      {truncateText(faq.answer, 100)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

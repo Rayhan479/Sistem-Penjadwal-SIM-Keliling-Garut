@@ -18,5 +18,17 @@ model Faq {
   id        Int      @id @default(autoincrement())
   question  String
   answer    String
-  
+  category  String   @default("Umum")
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Pengumuman {
+  id        Int      @id @default(autoincrement())
+  judul     String
+  tanggal   DateTime
+  gambar    String?
+  isi       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
