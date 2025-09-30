@@ -11,6 +11,14 @@ interface Report {
   status: string;
 }
 
+interface ApiReport {
+  id: number;
+  tanggal: string;
+  lokasi: string;
+  jumlah: number;
+  status: string;
+}
+
 export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,7 +56,7 @@ export default function ReportPage() {
     try {
       const response = await fetch('/api/laporan');
       const data = await response.json();
-      setReports(data.map((item: any) => ({
+      setReports(data.map((item: ApiReport) => ({
         ...item,
         tanggal: item.tanggal.split('T')[0],
         jumlah: item.jumlah.toString()

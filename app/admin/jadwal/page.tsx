@@ -7,6 +7,8 @@ interface Schedule {
   id: number;
   tanggal: string;
   lokasi: string;
+  latitude?: number;
+  longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
   status: string;
@@ -18,6 +20,8 @@ const scheduleData: Schedule[] = [
     id: 1,
     tanggal: '2025-01-20',
     lokasi: 'Kelurahan Menteng',
+    latitude: -7.2,
+    longitude: 107.9,
     waktuMulai: '08:00',
     waktuSelesai: '16:00',
     status: 'terjadwal',
@@ -27,6 +31,8 @@ const scheduleData: Schedule[] = [
     id: 2,
     tanggal: '2025-01-21',
     lokasi: 'Kelurahan Kemang',
+    latitude: -7.21,
+    longitude: 107.91,
     waktuMulai: '09:00',
     waktuSelesai: '15:00',
     status: 'berlangsung'
@@ -35,6 +41,8 @@ const scheduleData: Schedule[] = [
     id: 3,
     tanggal: '2025-01-22',
     lokasi: 'Kelurahan Senayan',
+    latitude: -7.19,
+    longitude: 107.89,
     waktuMulai: '08:30',
     waktuSelesai: '16:30',
     status: 'terjadwal'
@@ -43,6 +51,8 @@ const scheduleData: Schedule[] = [
     id: 4,
     tanggal: '2025-01-23',
     lokasi: 'Kelurahan Kuningan',
+    latitude: -7.22,
+    longitude: 107.92,
     waktuMulai: '08:00',
     waktuSelesai: '15:30',
     status: 'selesai'
@@ -51,6 +61,8 @@ const scheduleData: Schedule[] = [
     id: 5,
     tanggal: '2025-01-24',
     lokasi: 'Kelurahan Cikini',
+    latitude: -7.18,
+    longitude: 107.88,
     waktuMulai: '09:30',
     waktuSelesai: '17:00',
     status: 'dibatalkan'
@@ -59,6 +71,8 @@ const scheduleData: Schedule[] = [
     id: 6,
     tanggal: '2025-01-25',
     lokasi: 'Kelurahan Tebet',
+    latitude: -7.23,
+    longitude: 107.93,
     waktuMulai: '08:00',
     waktuSelesai: '16:00',
     status: 'terjadwal'
@@ -176,6 +190,9 @@ export default function SchedulePage() {
                   Lokasi
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Lokasi Map
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Gambar
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -207,6 +224,18 @@ export default function SchedulePage() {
                     <div className="flex items-center text-sm text-gray-700">
                       <MapPin size={14} className="text-gray-400 mr-2" />
                       {schedule.lokasi}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-xs text-gray-600">
+                      {schedule.latitude && schedule.longitude ? (
+                        <div>
+                          <div>Lat: {schedule.latitude.toFixed(6)}</div>
+                          <div>Lng: {schedule.longitude.toFixed(6)}</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Belum diset</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
