@@ -1,5 +1,8 @@
-import React from 'react';
+"use client";
+import React, { useState } from 'react';
 import { Car, Calendar, Users, FileText, MapPin, Megaphone, Settings } from 'lucide-react';
+import ReportModal from '@/app/admin/laporan/tambah/page';
+import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 
 const stats = [
   { title: 'Total Layanan', value: '1,247', icon: <Car size={24} />, color: 'bg-blue-500' },
@@ -17,6 +20,36 @@ const recentReports = [
 ];
 
 export default function MainContent() {
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const handleSaveAnnouncement = async (announcementData: any) => {
+    try {
+      await fetch('/api/pengumuman', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(announcementData)
+      });
+      setIsAnnouncementModalOpen(false);
+    } catch (error) {
+      console.error('Error saving announcement:', error);
+    }
+  };
+
+  const handleSaveReport = async (reportData: any) => {
+    try {
+      await fetch('/api/laporan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportData)
+      });
+      setIsReportModalOpen(false);
+    } catch (error) {
+      console.error('Error saving report:', error);
+    }
+  };
+
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Stats Grid */}
@@ -106,15 +139,21 @@ export default function MainContent() {
             <h3 className="text-lg font-semibold text-gray-800">Aksi Cepat</h3>
           </div>
           <div className="p-6 space-y-3 ">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+            <button 
+              onClick={() => setIsScheduleModalOpen(true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
               <Calendar size={20}/>
-              <span>Tambah Jadwal Baru</span> 
+              <span>Buat Jadwal Baru</span> 
             </button>
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+            <button 
+              onClick={() => setIsAnnouncementModalOpen(true)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
               <Megaphone size={20}/>
               <span>Buat Pengumuman</span>
             </button>
-            <button className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+            <button 
+              onClick={() => setIsReportModalOpen(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
               <FileText size={20}/>
               <span>Buat Laporan</span> 
             </button>
@@ -125,8 +164,21 @@ export default function MainContent() {
           </div>
         </div>
       </div>
+      
+      {/* Modals */}
+      <AnnouncementModal
+        isOpen={isAnnouncementModalOpen}
+        onClose={() => setIsAnnouncementModalOpen(false)}
+        onSave={handleSaveAnnouncement}
+        editingAnnouncement={null}
+      />
+      
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSave={handleSaveReport}
+        editingReport={null}
+      />
     </div>
-
-    
   );
 }

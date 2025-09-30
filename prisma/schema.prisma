@@ -33,3 +33,13 @@ model Pengumuman {
   updatedAt DateTime @updatedAt
 }
 
+model Laporan {
+  id        Int      @id @default(autoincrement())
+  tanggal   DateTime
+  lokasi    String
+  jumlah    Int
+  status    String   @default("selesai")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

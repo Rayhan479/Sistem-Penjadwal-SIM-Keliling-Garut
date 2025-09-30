@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, MapPin, FileText, FileDown  } from 'lucide-react';
 import ReportModal from '@/app/admin/laporan/tambah/page';
 
@@ -11,46 +11,8 @@ interface Report {
   status: string;
 }
 
-const reportData: Report[] = [
-  {
-    id: 1,
-    tanggal: '2025-01-20',
-    lokasi: 'Kelurahan Menteng',
-    jumlah: '99',
-    status: 'selesai'
-  },
-  {
-    id: 2,
-    tanggal: '2025-01-21',
-    lokasi: 'Kelurahan Kemang',
-    jumlah: '50',
-    status: 'selesai'
-  },
-  {
-    id: 3,
-    tanggal: '2025-01-22',
-    lokasi: 'Kelurahan Senayan',
-    jumlah: '66',
-    status: 'selesai'
-  },
-  {
-    id: 4,
-    tanggal: '2025-01-23',
-    lokasi: 'Kelurahan Kuningan',
-    jumlah: '87',
-    status: 'selesai'
-  },
-  {
-    id: 5,
-    tanggal: '2025-01-24',
-    lokasi: 'Kelurahan Cikini',
-    jumlah: '30',
-    status: 'selesai'
-  }
-];
-
 export default function ReportPage() {
-  const [reports, setReports] = useState(reportData);
+  const [reports, setReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
 
@@ -67,24 +29,53 @@ export default function ReportPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
-      setReports(prev => prev.filter(report => report.id !== id));
+      try {
+        await fetch(`/api/laporan/${id}`, { method: 'DELETE' });
+        fetchReports();
+      } catch (error) {
+        console.error('Error deleting report:', error);
+      }
     }
   };
 
-  const handleSaveReport = (reportData: Omit<Report, 'id'>) => {
-    if (editingReport) {
-      // Update existing report
-      setReports(prev => prev.map(report => 
-        report.id === editingReport.id 
-          ? { ...reportData, id: editingReport.id }
-          : report
-      ));
-    } else {
-      // Add new report
-      const newId = Math.max(...reports.map(r => r.id)) + 1;
-      setReports(prev => [...prev, { ...reportData, id: newId }]);
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      const response = await fetch('/api/laporan');
+      const data = await response.json();
+      setReports(data.map((item: any) => ({
+        ...item,
+        tanggal: item.tanggal.split('T')[0],
+        jumlah: item.jumlah.toString()
+      })));
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    }
+  };
+
+  const handleSaveReport = async (reportData: Omit<Report, 'id'>) => {
+    try {
+      if (editingReport) {
+        await fetch(`/api/laporan/${editingReport.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reportData)
+        });
+      } else {
+        await fetch('/api/laporan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reportData)
+        });
+      }
+      fetchReports();
+    } catch (error) {
+      console.error('Error saving report:', error);
     }
   };
 
@@ -97,7 +88,7 @@ export default function ReportPage() {
     const statusConfig = {
       terjadwal: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Terjadwal' },
       berlangsung: { bg: 'bg-green-100', text: 'text-green-800', label: 'Berlangsung' },
-      selesai: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Selesai' },
+      selesai: { bg: 'bg-green-100', text: 'text-green-800', label: 'Selesai' },
       dibatalkan: { bg: 'bg-red-100', text: 'text-red-800', label: 'Dibatalkan' }
     };
 
