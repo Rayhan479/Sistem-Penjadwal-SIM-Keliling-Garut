@@ -21,7 +21,7 @@ export default function ReportModal({ isOpen, onClose, onSave, editingReport }: 
     tanggal: '',
     lokasi: '',
     jumlah: '',
-    status: 'terjadwal'
+    status: 'selesai'
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,14 +31,14 @@ export default function ReportModal({ isOpen, onClose, onSave, editingReport }: 
         tanggal: editingReport.tanggal,
         lokasi: editingReport.lokasi,
         jumlah: editingReport.jumlah,
-        status: editingReport.status
+        status: 'selesai'
       });
     } else {
       setFormData({
         tanggal: '',
         lokasi: '',
         jumlah: '',
-        status: 'terjadwal'
+        status: 'selesai'
       });
     }
     setErrors({});
@@ -61,9 +61,7 @@ export default function ReportModal({ isOpen, onClose, onSave, editingReport }: 
       newErrors.jumlah = 'Jumlah harus berupa angka positif';
     }
 
-    if (!formData.status) {
-      newErrors.status = 'Status harus dipilih';
-    }
+
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -176,31 +174,7 @@ export default function ReportModal({ isOpen, onClose, onSave, editingReport }: 
             )}
           </div>
 
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FileText size={16} className="inline mr-2" />
-              Status Layanan
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.status ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="terjadwal">Terjadwal</option>
-              <option value="berlangsung">Berlangsung</option>
-              <option value="selesai">Selesai</option>
-              <option value="dibatalkan">Dibatalkan</option>
-            </select>
-            {errors.status && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <AlertCircle size={14} className="mr-1" />
-                {errors.status}
-              </p>
-            )}
-          </div>
+
 
           {/* Modal Footer */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">

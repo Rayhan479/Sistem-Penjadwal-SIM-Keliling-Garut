@@ -17,21 +17,21 @@ const reportData: Report[] = [
     tanggal: '2025-01-20',
     lokasi: 'Kelurahan Menteng',
     jumlah: '99',
-    status: 'terjadwal'
+    status: 'selesai'
   },
   {
     id: 2,
     tanggal: '2025-01-21',
     lokasi: 'Kelurahan Kemang',
     jumlah: '50',
-    status: 'berlangsung'
+    status: 'selesai'
   },
   {
     id: 3,
     tanggal: '2025-01-22',
     lokasi: 'Kelurahan Senayan',
     jumlah: '66',
-    status: 'terjadwal'
+    status: 'selesai'
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const reportData: Report[] = [
     tanggal: '2025-01-24',
     lokasi: 'Kelurahan Cikini',
     jumlah: '30',
-    status: 'dibatalkan'
+    status: 'selesai'
   }
 ];
 
