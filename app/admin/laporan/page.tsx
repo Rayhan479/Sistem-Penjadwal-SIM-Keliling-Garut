@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MapPin, FileText, FileDown  } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, FileText, FileDown, Filter } from 'lucide-react';
 import ReportModal from '@/app/admin/laporan/tambah/page';
+import * as XLSX from 'xlsx';
 
 interface Report {
   id: number;
@@ -21,8 +22,10 @@ interface ApiReport {
 
 export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
+  const [filterPeriod, setFilterPeriod] = useState<'all' | 'weekly' | 'monthly'>('all');
 
   const handleAddReport = () => {
     setEditingReport(null);
@@ -56,14 +59,57 @@ export default function ReportPage() {
     try {
       const response = await fetch('/api/laporan');
       const data = await response.json();
-      setReports(data.map((item: ApiReport) => ({
+      const formattedReports = data.map((item: ApiReport) => ({
         ...item,
         tanggal: item.tanggal.split('T')[0],
         jumlah: item.jumlah.toString()
-      })));
+      }));
+      setReports(formattedReports);
+      applyFilter(formattedReports, filterPeriod);
     } catch (error) {
       console.error('Error fetching reports:', error);
     }
+  };
+
+  const applyFilter = (reportsData: Report[], period: 'all' | 'weekly' | 'monthly') => {
+    const now = new Date();
+    let filtered = reportsData;
+
+    if (period === 'weekly') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = reportsData.filter(report => new Date(report.tanggal) >= oneWeekAgo);
+    } else if (period === 'monthly') {
+      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      filtered = reportsData.filter(report => new Date(report.tanggal) >= oneMonthAgo);
+    }
+
+    setFilteredReports(filtered);
+  };
+
+  const handleFilterChange = (period: 'all' | 'weekly' | 'monthly') => {
+    setFilterPeriod(period);
+    applyFilter(reports, period);
+  };
+
+  const handleDownloadExcel = () => {
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const monthlyReports = reports.filter(report => new Date(report.tanggal) >= oneMonthAgo);
+    
+    const excelData = monthlyReports.map(report => ({
+      'Tanggal': formatDate(report.tanggal),
+      'Lokasi': report.lokasi,
+      'Jumlah Dilayani': report.jumlah,
+      'Status': report.status === 'selesai' ? 'Selesai' : 
+               report.status === 'berlangsung' ? 'Berlangsung' : 'Dibatalkan'
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Bulanan');
+    
+    const fileName = `Laporan_SIM_Keliling_${now.getFullYear()}_${(now.getMonth() + 1).toString().padStart(2, '0')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   const handleSaveReport = async (reportData: Omit<Report, 'id'>) => {
@@ -140,6 +186,7 @@ export default function ReportPage() {
             </button>
 
             <button
+                onClick={handleDownloadExcel}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
             >
                 <FileDown  size={20} />
@@ -150,11 +197,45 @@ export default function ReportPage() {
         </div>
       </div>
 
+      {/* Filter Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center space-x-4">
+          <Filter size={20} className="text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Filter Periode:</span>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleFilterChange('all')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                filterPeriod === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Semua
+            </button>
+            <button
+              onClick={() => handleFilterChange('weekly')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                filterPeriod === 'weekly' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Mingguan
+            </button>
+            <button
+              onClick={() => handleFilterChange('monthly')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                filterPeriod === 'monthly' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Bulanan
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Schedule Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800">Daftar Laporan</h3>
-          <p className="text-sm text-gray-600 mt-1">Total {reports.length} laporan</p>
+          <p className="text-sm text-gray-600 mt-1">Menampilkan {filteredReports.length} dari {reports.length} laporan</p>
         </div>
         
         <div className="overflow-x-auto">
@@ -179,7 +260,7 @@ export default function ReportPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {reports.map((report) => (
+              {filteredReports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">

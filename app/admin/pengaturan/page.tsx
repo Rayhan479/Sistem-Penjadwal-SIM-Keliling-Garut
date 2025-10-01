@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from 'react';
-import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save } from 'lucide-react';
+import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save, MessageCircle } from 'lucide-react';
 import FAQModal from '@/app/admin/pengaturan/tambah/page';
 
 interface ContactInfo {
   phone: string;
   email: string;
+  whatsapp: string;
   address: string;
 }
 
@@ -16,49 +17,82 @@ interface FAQ {
   category: string;
 }
 
-const initialContactInfo: ContactInfo = {
-  phone: '021-1500-000',
-  email: 'info@simkeliling.go.id',
-  address: 'Jl. Jenderal Sudirman No. 123, Jakarta Pusat 10270'
-};
-
-
-
 export default function SettingsPage() {
-  const [contactInfo, setContactInfo] = useState<ContactInfo>(initialContactInfo);
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    phone: '',
+    email: '',
+    whatsapp: '',
+    address: ''
+  });
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchFAQs = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch('/api/faq');
-      if (response.ok) {
-        const data = await response.json();
-        setFAQs(data);
+      const [faqResponse, contactResponse] = await Promise.all([
+        fetch('/api/faq'),
+        fetch('/api/contact')
+      ]);
+      
+      if (faqResponse.ok) {
+        const faqData = await faqResponse.json();
+        setFAQs(faqData);
+      } else {
+        console.error('FAQ fetch failed:', faqResponse.status);
+      }
+      
+      console.log('Contact response status:', contactResponse.status);
+      if (contactResponse.ok) {
+        const contactData = await contactResponse.json();
+        console.log('Contact data received:', contactData);
+        if (contactData) {
+          setContactInfo(contactData);
+        }
+      } else {
+        const errorText = await contactResponse.text();
+        console.error('Contact fetch failed:', contactResponse.status, errorText);
       }
     } catch (error) {
-      console.error('Error fetching FAQs:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    fetchFAQs();
+    fetchData();
   }, []);
   const [isContactEditing, setIsContactEditing] = useState(false);
   const [isFAQModalOpen, setIsFAQModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
-  const [contactFormData, setContactFormData] = useState<ContactInfo>(initialContactInfo);
+  const [contactFormData, setContactFormData] = useState<ContactInfo>({
+    phone: '',
+    email: '',
+    whatsapp: '',
+    address: ''
+  });
 
   const handleContactEdit = () => {
     setContactFormData(contactInfo);
     setIsContactEditing(true);
   };
 
-  const handleContactSave = () => {
-    setContactInfo(contactFormData);
-    setIsContactEditing(false);
+  const handleContactSave = async () => {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactFormData)
+      });
+      
+      if (response.ok) {
+        const updatedContact = await response.json();
+        setContactInfo(updatedContact);
+        setIsContactEditing(false);
+      }
+    } catch (error) {
+      console.error('Error saving contact info:', error);
+    }
   };
 
   const handleContactCancel = () => {
@@ -218,6 +252,24 @@ export default function SettingsPage() {
               />
             ) : (
               <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.email}</p>
+            )}
+          </div>
+
+          {/* WhatsApp */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <MessageCircle size={16} className="inline mr-2" />
+              Nomor WhatsApp
+            </label>
+            {isContactEditing ? (
+              <input
+                type="text"
+                value={contactFormData.whatsapp}
+                onChange={(e) => handleContactInputChange('whatsapp', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.whatsapp}</p>
             )}
           </div>
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar, 
   MapPin, 
@@ -12,33 +12,35 @@ import {
   Clock3,
   ExternalLink
 } from 'lucide-react';
+import LocationDetailModal from '@/components/LocationDetailModal';
+import SearchModal from '@/components/SearchModal';
+import dynamic from 'next/dynamic';
 
-const upcomingSchedules = [
-  {
-    id: 1,
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400',
-    location: 'Jadwal SIM Keliling Di Cikajang',
-    date: 'Rabu 24 September 2025',
-    time: '08:00 - 16:00',
-    venue: 'Kantor Desa'
-  },
-  {
-    id: 2,
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400',
-    location: 'Jadwal SIM Keliling Di Cibatu',
-    date: 'Kamis 25 September 2025',
-    time: '08:00 - 16:00',
-    venue: 'Kantor Desa'
-  },
-  {
-    id: 3,
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400',
-    location: 'Jadwal SIM Keliling Di Cisewu',
-    date: 'Jumat 26 September 2025',
-    time: '08:00 - 16:00',
-    venue: 'Kantor Desa'
-  }
-];
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const GeoJSON = dynamic(() => import('react-leaflet').then(mod => mod.GeoJSON), { ssr: false });
+
+interface JadwalItem {
+  id: number;
+  judul: string;
+  tanggal: string;
+  lokasi: string;
+  alamatLengkap?: string;
+  latitude?: number;
+  longitude?: number;
+  waktuMulai: string;
+  waktuSelesai: string;
+  status: string;
+  gambar?: string;
+}
+
+interface PengumumanItem {
+  id: number;
+  judul: string;
+  isi: string;
+  gambar?: string;
+  tanggal: string;
+}
 
 const procedures = [
   {
@@ -63,36 +65,96 @@ const procedures = [
   }
 ];
 
-const newsItems = [
-  {
-    id: 1,
-    title: 'Pengumuman Layanan SIM Keliling Libur',
-    description: 'Pengumuman dengan hormat bahwa layanan SIM Keliling akan diliburkan pada tanggal 17 Agustus 2025. Layanan akan kembali beroperasi normal pada tanggal 18 Agustus 2025.',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 2,
-    title: 'Tips Perpanjangan SIM',
-    description: 'Pastikan Anda membawa dokumen yang diperlukan seperti KTP asli, SIM lama, surat keterangan sehat dari dokter, dan pas foto untuk kelancaran proses perpanjangan.',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  }
-];
 
-const locations = [
-  'Semua Lokasi',
-  'Cikajang',
-  'Cibatu', 
-  'Cisewu',
-  'Garut Kota',
-  'Tarogong Kidul',
-  'Leles',
-  'Banyuresmi'
-];
 
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [upcomingSchedules, setUpcomingSchedules] = useState<JadwalItem[]>([]);
+  const [locations, setLocations] = useState<string[]>(['Semua Lokasi']);
+  const [pengumuman, setPengumuman] = useState<PengumumanItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSchedule, setSelectedSchedule] = useState<JadwalItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [garutBoundary, setGarutBoundary] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [upcomingRes, locationsRes, pengumumanRes] = await Promise.all([
+          fetch('/api/jadwal/upcoming'),
+          fetch('/api/jadwal/locations'),
+          fetch('/api/pengumuman')
+        ]);
+        
+        const upcomingData = await upcomingRes.json();
+        const locationsData = await locationsRes.json();
+        const pengumumanData = await pengumumanRes.json();
+        
+        setUpcomingSchedules(upcomingData);
+        setLocations(['Semua Lokasi', ...locationsData]);
+        setPengumuman(pengumumanData.slice(0, 2)); // Ambil 2 pengumuman terbaru
+        
+        // Fetch Garut boundary
+        const boundaryRes = await fetch('https://overpass-api.de/api/interpreter?data=[out:json];relation(14925429);out geom;');
+        const boundaryData = await boundaryRes.json();
+        if (boundaryData.elements && boundaryData.elements.length > 0) {
+          const relation = boundaryData.elements[0];
+          if (relation.members) {
+            const coordinates = relation.members
+              .filter((member: any) => member.type === 'way' && member.geometry)
+              .map((member: any) => member.geometry.map((point: any) => [point.lat, point.lon]));
+            
+            if (coordinates.length > 0) {
+              setGarutBoundary({
+                type: 'Feature',
+                geometry: {
+                  type: 'MultiPolygon',
+                  coordinates: [coordinates]
+                }
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleViewDetail = (schedule: JadwalItem) => {
+    setSelectedSchedule(schedule);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSchedule(null);
+  };
+
+  const handleSearch = () => {
+    setIsSearchModalOpen(true);
+  };
+
+  const handleCloseSearchModal = () => {
+    setIsSearchModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -125,39 +187,63 @@ export default function HomePage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {upcomingSchedules.map((schedule) => (
-              <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <img 
-                  src={schedule.image} 
-                  alt={schedule.location}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">{schedule.location}</h3>
-                  <div className="space-y-2 text-gray-600 mb-4">
-                    <div className="flex items-center">
-                      <Calendar size={16} className="mr-2" />
-                      <span className="text-sm">{schedule.date}</span>
+            {loading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                  <div className="w-full h-48 bg-gray-300"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-300 rounded mb-3"></div>
+                    <div className="space-y-2 mb-4">
+                      <div className="h-4 bg-gray-300 rounded"></div>
+                      <div className="h-4 bg-gray-300 rounded"></div>
+                      <div className="h-4 bg-gray-300 rounded"></div>
                     </div>
-                    <div className="flex items-center">
-                      <Clock size={16} className="mr-2" />
-                      <span className="text-sm">{schedule.time}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin size={16} className="mr-2" />
-                      <span className="text-sm">{schedule.venue}</span>
-                    </div>
+                    <div className="h-10 bg-gray-300 rounded"></div>
                   </div>
-                  <button className="w-full bg-[#2622FF] text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Lihat Lokasi Detail
-                  </button>
                 </div>
+              ))
+            ) : upcomingSchedules.length > 0 ? (
+              upcomingSchedules.map((schedule) => (
+                <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                  <img 
+                    src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
+                    alt={schedule.judul}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">{schedule.judul}</h3>
+                    <div className="space-y-2 text-gray-600 mb-4">
+                      <div className="flex items-center">
+                        <Calendar size={16} className="mr-2" />
+                        <span className="text-sm">{formatDate(schedule.tanggal)}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock size={16} className="mr-2" />
+                        <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin size={16} className="mr-2" />
+                        <span className="text-sm">{schedule.lokasi}</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleViewDetail(schedule)}
+                      className="w-full bg-[#2622FF] text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Lihat Lokasi Detail
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <p className="text-gray-500">Tidak ada jadwal yang akan datang</p>
               </div>
-            ))}
+            )}
           </div>
           
           <div className="text-center">
-            <a href="#" className="text-[#2622FF] hover:text-blue-900 font-medium flex items-center justify-center">
+            <a href="/jadwal" className="text-[#2622FF] hover:text-blue-900 font-medium flex items-center justify-center">
               Lihat Jadwal Lengkap
               <ExternalLink size={16} className="ml-2" />
             </a>
@@ -221,17 +307,36 @@ export default function HomePage() {
                 </div>
               </div>
               
-              <button className="w-full bg-[#2622FF] text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+              <button 
+                onClick={handleSearch}
+                className="w-full bg-[#2622FF] text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
                 Cari
               </button>
             </div>
             
-            <div className="bg-gray-100 rounded-xl p-8 flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <MapPin size={64} className="mx-auto mb-4" />
-                <p className="text-lg">Peta Kabupaten Garut</p>
-                <p className="text-sm">Visualisasi lokasi akan ditampilkan di sini</p>
-              </div>
+            <div className="bg-gray-100 rounded-xl overflow-hidden" style={{ height: '400px' }}>
+              <MapContainer
+                center={[-7.2, 107.9]}
+                zoom={10}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                {garutBoundary && (
+                  <GeoJSON
+                    data={garutBoundary}
+                    style={{
+                      color: '#2622FF',
+                      weight: 2,
+                      fillColor: '#2622FF',
+                      fillOpacity: 0.1
+                    }}
+                  />
+                )}
+              </MapContainer>
             </div>
           </div>
         </div>
@@ -266,18 +371,18 @@ export default function HomePage() {
           </div>
           
           <div className="space-y-8">
-            {newsItems.map((news) => (
-              <div key={news.id} className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            {pengumuman.map((item) => (
+              <div key={item.id} className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="md:w-1/3">
                   <img 
-                    src={news.image} 
-                    alt={news.title}
+                    src={item.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
+                    alt={item.judul}
                     className="w-full h-48 md:h-full object-cover"
                   />
                 </div>
                 <div className="md:w-2/3 p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-3">{news.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{news.description}</p>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3">{item.judul}</h3>
+                  <p className="text-gray-600 leading-relaxed">{item.isi}</p>
                 </div>
               </div>
             ))}
@@ -299,9 +404,23 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-
       
+      <LocationDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        schedule={selectedSchedule}
+      />
+      
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={handleCloseSearchModal}
+        searchFilters={{
+          date: selectedDate,
+          status: selectedStatus,
+          location: selectedLocation
+        }}
+        onViewDetail={handleViewDetail}
+      />
     </div>
   );
 }

@@ -1,28 +1,59 @@
 "use client";
-import React, { useState } from 'react';
-import { Car, Calendar, Users, FileText, MapPin, Megaphone, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Car, Calendar, Users, FileText, MapPin, Megaphone } from 'lucide-react';
 import ReportModal from '@/app/admin/laporan/tambah/page';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 
-const stats = [
-  { title: 'Total Layanan', value: '1,247', icon: <Car size={24} />, color: 'bg-blue-500' },
-  { title: 'Jadwal Aktif', value: '23', icon: <Calendar size={24} />, color: 'bg-green-500' },
-  { title: 'Total Pendaftar', value: '892', icon: <Users size={24} />, color: 'bg-purple-500' },
-  { title: 'Laporan Selesai', value: '156', icon: <FileText size={24} />, color: 'bg-orange-500' },
-];
 
-const recentReports = [
-  { tanggal: '15 Jan 2025', lokasi: 'Kelurahan Menteng', jumlahPendaftar: 45, status: 'selesai' },
-  { tanggal: '14 Jan 2025', lokasi: 'Kelurahan Kemang', jumlahPendaftar: 32, status: 'berlangsung' },
-  { tanggal: '13 Jan 2025', lokasi: 'Kelurahan Senayan', jumlahPendaftar: 28, status: 'selesai' },
-  { tanggal: '12 Jan 2025', lokasi: 'Kelurahan Kuningan', jumlahPendaftar: 51, status: 'selesai' },
-  { tanggal: '11 Jan 2025', lokasi: 'Kelurahan Cikini', jumlahPendaftar: 39, status: 'dibatalkan' },
-];
 
 export default function MainContent() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [stats, setStats] = useState([
+    { title: 'Total Layanan', value: '0', icon: <Car size={24} />, color: 'bg-blue-500' },
+    { title: 'Jadwal Aktif', value: '0', icon: <Calendar size={24} />, color: 'bg-green-500' },
+    { title: 'Total Pengumuman', value: '0', icon: <Megaphone size={24} />, color: 'bg-purple-500' },
+    { title: 'Laporan Selesai', value: '0', icon: <FileText size={24} />, color: 'bg-orange-500' },
+  ]);
+  const [recentReports, setRecentReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [jadwalRes, pengumumanRes, laporanRes] = await Promise.all([
+          fetch('/api/jadwal'),
+          fetch('/api/pengumuman'),
+          fetch('/api/laporan')
+        ]);
+        
+        const jadwalData = await jadwalRes.json();
+        const pengumumanData = await pengumumanRes.json();
+        const laporanData = await laporanRes.json();
+        
+        const totalLayanan = laporanData.reduce((sum: number, laporan: any) => sum + laporan.jumlah, 0);
+        const jadwalAktif = jadwalData.filter((jadwal: any) => jadwal.status === 'terjadwal' || jadwal.status === 'berlangsung').length;
+        const laporanSelesai = laporanData.filter((laporan: any) => laporan.status === 'selesai').length;
+        
+        setStats([
+          { title: 'Total Layanan', value: totalLayanan.toString(), icon: <Car size={24} />, color: 'bg-blue-500' },
+          { title: 'Jadwal Aktif', value: jadwalAktif.toString(), icon: <Calendar size={24} />, color: 'bg-green-500' },
+          { title: 'Total Pengumuman', value: pengumumanData.length.toString(), icon: <Megaphone size={24} />, color: 'bg-purple-500' },
+          { title: 'Laporan Selesai', value: laporanSelesai.toString(), icon: <FileText size={24} />, color: 'bg-orange-500' },
+        ]);
+        
+        // Fetch recent reports
+        const sortedReports = laporanData
+          .sort((a: any, b: any) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+          .slice(0, 5);
+        setRecentReports(sortedReports);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+    
+    fetchStats();
+  }, []);
 
   const handleSaveAnnouncement = async (announcementData: any) => {
     try {
@@ -88,7 +119,7 @@ export default function MainContent() {
                     Lokasi
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Jumlah Pendaftar
+                    Jumlah Dilayani
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -97,9 +128,9 @@ export default function MainContent() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentReports.map((report, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <tr key={report.id || index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {report.tanggal}
+                      {new Date(report.tanggal).toLocaleDateString('id-ID')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex items-center">
@@ -110,7 +141,7 @@ export default function MainContent() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex items-center">
                         <Users size={14} className="text-gray-400 mr-2" />
-                        {report.jumlahPendaftar} orang
+                        {report.jumlah} orang
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -157,10 +188,7 @@ export default function MainContent() {
               <FileText size={20}/>
               <span>Buat Laporan</span> 
             </button>
-            <button className="w-full border bg-black hover:bg-gray-800 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-              <Settings size={20}/>
-              <span>Pengaturan Sistem</span> 
-            </button>
+            
           </div>
         </div>
       </div>

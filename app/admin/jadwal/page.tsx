@@ -1,12 +1,14 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, MapPin, Clock, Calendar, Image } from 'lucide-react';
 import ScheduleModal from '@/app/admin/jadwal/tambah/page';
 
 interface Schedule {
   id: number;
+  judul: string;
   tanggal: string;
   lokasi: string;
+  alamatLengkap?: string;
   latitude?: number;
   longitude?: number;
   waktuMulai: string;
@@ -15,75 +17,55 @@ interface Schedule {
   gambar?: string;
 }
 
-const scheduleData: Schedule[] = [
-  {
-    id: 1,
-    tanggal: '2025-01-20',
-    lokasi: 'Kelurahan Menteng',
-    latitude: -7.2,
-    longitude: 107.9,
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    status: 'terjadwal',
-    gambar: undefined
-  },
-  {
-    id: 2,
-    tanggal: '2025-01-21',
-    lokasi: 'Kelurahan Kemang',
-    latitude: -7.21,
-    longitude: 107.91,
-    waktuMulai: '09:00',
-    waktuSelesai: '15:00',
-    status: 'berlangsung'
-  },
-  {
-    id: 3,
-    tanggal: '2025-01-22',
-    lokasi: 'Kelurahan Senayan',
-    latitude: -7.19,
-    longitude: 107.89,
-    waktuMulai: '08:30',
-    waktuSelesai: '16:30',
-    status: 'terjadwal'
-  },
-  {
-    id: 4,
-    tanggal: '2025-01-23',
-    lokasi: 'Kelurahan Kuningan',
-    latitude: -7.22,
-    longitude: 107.92,
-    waktuMulai: '08:00',
-    waktuSelesai: '15:30',
-    status: 'selesai'
-  },
-  {
-    id: 5,
-    tanggal: '2025-01-24',
-    lokasi: 'Kelurahan Cikini',
-    latitude: -7.18,
-    longitude: 107.88,
-    waktuMulai: '09:30',
-    waktuSelesai: '17:00',
-    status: 'dibatalkan'
-  },
-  {
-    id: 6,
-    tanggal: '2025-01-25',
-    lokasi: 'Kelurahan Tebet',
-    latitude: -7.23,
-    longitude: 107.93,
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    status: 'terjadwal'
-  }
-];
+
 
 export default function SchedulePage() {
-  const [schedules, setSchedules] = useState(scheduleData);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+
+  useEffect(() => {
+    fetchSchedules();
+    
+    // Set up interval to check and update status every minute
+    const interval = setInterval(() => {
+      updateScheduleStatuses();
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const updateScheduleStatuses = async () => {
+    try {
+      await fetch('/api/jadwal/update-status', {
+        method: 'POST'
+      });
+      
+      // Refresh schedules after status update
+      const response = await fetch('/api/jadwal');
+      const data = await response.json();
+      setSchedules(data);
+    } catch (error) {
+      console.error('Error updating schedule statuses:', error);
+    }
+  };
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await fetch('/api/jadwal');
+      const data = await response.json();
+      setSchedules(data);
+      
+      // Update statuses immediately after fetching
+      setTimeout(() => updateScheduleStatuses(), 100);
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddSchedule = () => {
     setEditingSchedule(null);
@@ -98,24 +80,40 @@ export default function SchedulePage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-      setSchedules(prev => prev.filter(schedule => schedule.id !== id));
+      try {
+        await fetch(`/api/jadwal/${id}`, { method: 'DELETE' });
+        setSchedules(prev => prev.filter(schedule => schedule.id !== id));
+      } catch (error) {
+        console.error('Error deleting schedule:', error);
+      }
     }
   };
 
-  const handleSaveSchedule = (scheduleData: Omit<Schedule, 'id'>) => {
-    if (editingSchedule) {
-      // Update existing schedule
-      setSchedules(prev => prev.map(schedule => 
-        schedule.id === editingSchedule.id 
-          ? { ...scheduleData, id: editingSchedule.id }
-          : schedule
-      ));
-    } else {
-      // Add new schedule
-      const newId = Math.max(...schedules.map(s => s.id)) + 1;
-      setSchedules(prev => [...prev, { ...scheduleData, id: newId }]);
+  const handleSaveSchedule = async (scheduleData: Omit<Schedule, 'id'>) => {
+    try {
+      if (editingSchedule) {
+        const response = await fetch(`/api/jadwal/${editingSchedule.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scheduleData)
+        });
+        const updatedSchedule = await response.json();
+        setSchedules(prev => prev.map(schedule => 
+          schedule.id === editingSchedule.id ? updatedSchedule : schedule
+        ));
+      } else {
+        const response = await fetch('/api/jadwal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scheduleData)
+        });
+        const newSchedule = await response.json();
+        setSchedules(prev => [...prev, newSchedule]);
+      }
+    } catch (error) {
+      console.error('Error saving schedule:', error);
     }
   };
 
@@ -149,6 +147,24 @@ export default function SchedulePage() {
       day: 'numeric'
     });
   };
+
+  const truncateText = (text: string | undefined, maxLength: number = 30) => {
+    if (!text) return '-';
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -184,10 +200,16 @@ export default function SchedulePage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Judul
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tanggal
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Lokasi
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Alamat Lengkap
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Lokasi Map
@@ -196,10 +218,7 @@ export default function SchedulePage() {
                   Gambar
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Waktu Mulai
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Waktu Selesai
+                  Waktu Mulai & Selesai
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -214,6 +233,11 @@ export default function SchedulePage() {
                 <tr key={schedule.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
+                      {schedule.judul}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
                       {formatDate(schedule.tanggal)}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -224,6 +248,11 @@ export default function SchedulePage() {
                     <div className="flex items-center text-sm text-gray-700">
                       <MapPin size={14} className="text-gray-400 mr-2" />
                       {schedule.lokasi}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-700" title={schedule.alamatLengkap || '-'}>
+                      {truncateText(schedule.alamatLengkap)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -254,15 +283,10 @@ export default function SchedulePage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-700">
                       <Clock size={14} className="text-gray-400 mr-2" />
-                      {schedule.waktuMulai}
+                      {schedule.waktuMulai} - {schedule.waktuSelesai}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-700">
-                      <Clock size={14} className="text-gray-400 mr-2" />
-                      {schedule.waktuSelesai}
-                    </div>
-                  </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(schedule.status)}
                   </td>

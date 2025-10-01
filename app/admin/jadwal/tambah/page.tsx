@@ -4,8 +4,10 @@ import LocationMap from '@/components/LocationMap';
 
 interface Schedule {
   id: number;
+  judul: string;
   tanggal: string;
   lokasi: string;
+  alamatLengkap?: string;
   latitude?: number;
   longitude?: number;
   waktuMulai: string;
@@ -23,8 +25,10 @@ interface ScheduleModalProps {
 
 export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule }: ScheduleModalProps) {
   const [formData, setFormData] = useState({
+    judul: '',
     tanggal: '',
     lokasi: '',
+    alamatLengkap: '',
     latitude: -7.2,
     longitude: 107.9,
     waktuMulai: '',
@@ -38,9 +42,16 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
 
   useEffect(() => {
     if (editingSchedule) {
+      const formatDateForInput = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0];
+      };
+      
       setFormData({
-        tanggal: editingSchedule.tanggal,
+        judul: editingSchedule.judul,
+        tanggal: formatDateForInput(editingSchedule.tanggal),
         lokasi: editingSchedule.lokasi,
+        alamatLengkap: editingSchedule.alamatLengkap || '',
         latitude: editingSchedule.latitude || -7.2,
         longitude: editingSchedule.longitude || 107.9,
         waktuMulai: editingSchedule.waktuMulai,
@@ -51,8 +62,10 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
       setPreviewUrl(editingSchedule.gambar || '');
     } else {
       setFormData({
+        judul: '',
         tanggal: '',
         lokasi: '',
+        alamatLengkap: '',
         latitude: -7.2,
         longitude: 107.9,
         waktuMulai: '',
@@ -68,6 +81,10 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.judul.trim()) {
+      newErrors.judul = 'Judul harus diisi';
+    }
 
     if (!formData.tanggal) {
       newErrors.tanggal = 'Tanggal harus diisi';
@@ -155,6 +172,28 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Judul */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judul
+            </label>
+            <input
+              type="text"
+              value={formData.judul}
+              onChange={(e) => handleInputChange('judul', e.target.value)}
+              placeholder="Masukkan judul jadwal"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.judul ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.judul && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <AlertCircle size={14} className="mr-1" />
+                {errors.judul}
+              </p>
+            )}
+          </div>
+
           {/* Tanggal */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -198,6 +237,20 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
                 {errors.lokasi}
               </p>
             )}
+          </div>
+
+          {/* Alamat Lengkap */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Alamat Lengkap
+            </label>
+            <textarea
+              value={formData.alamatLengkap}
+              onChange={(e) => handleInputChange('alamatLengkap', e.target.value)}
+              placeholder="Masukkan alamat lengkap (opsional)"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            />
           </div>
 
           {/* Lokasi Map */}

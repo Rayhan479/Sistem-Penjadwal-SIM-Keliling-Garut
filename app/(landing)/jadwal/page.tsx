@@ -1,113 +1,21 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Search, Filter, ChevronDown } from 'lucide-react';
-
+import LocationDetailModal from '@/components/LocationDetailModal';
 
 interface Schedule {
   id: number;
+  judul: string;
   tanggal: string;
   lokasi: string;
+  alamatLengkap?: string;
+  latitude?: number;
+  longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
-  tempat: string;
   status: string;
-  image: string;
+  gambar?: string;
 }
-
-const scheduleData: Schedule[] = [
-  {
-    id: 1,
-    tanggal: '2025-01-20',
-    lokasi: 'Jadwal SIM Keliling Di Cikajang',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Desa Cikajang',
-    status: 'terjadwal',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 2,
-    tanggal: '2025-01-21',
-    lokasi: 'Jadwal SIM Keliling Di Cibatu',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Desa Cibatu',
-    status: 'berlangsung',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 3,
-    tanggal: '2025-01-22',
-    lokasi: 'Jadwal SIM Keliling Di Cisewu',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Desa Cisewu',
-    status: 'terjadwal',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 4,
-    tanggal: '2025-01-23',
-    lokasi: 'Jadwal SIM Keliling Di Garut Kota',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Kecamatan Garut Kota',
-    status: 'terjadwal',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 5,
-    tanggal: '2025-01-24',
-    lokasi: 'Jadwal SIM Keliling Di Tarogong Kidul',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Kecamatan Tarogong Kidul',
-    status: 'selesai',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 6,
-    tanggal: '2025-01-25',
-    lokasi: 'Jadwal SIM Keliling Di Leles',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Desa Leles',
-    status: 'terjadwal',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 7,
-    tanggal: '2025-01-26',
-    lokasi: 'Jadwal SIM Keliling Di Banyuresmi',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Desa Banyuresmi',
-    status: 'terjadwal',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: 8,
-    tanggal: '2025-01-27',
-    lokasi: 'Jadwal SIM Keliling Di Malangbong',
-    waktuMulai: '08:00',
-    waktuSelesai: '16:00',
-    tempat: 'Kantor Kecamatan Malangbong',
-    status: 'dibatalkan',
-    image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'
-  }
-];
-
-const locations = [
-  'Semua Lokasi',
-  'Cikajang',
-  'Cibatu',
-  'Cisewu',
-  'Garut Kota',
-  'Tarogong Kidul',
-  'Leles',
-  'Banyuresmi',
-  'Malangbong'
-];
 
 const statusOptions = [
   'Semua Status',
@@ -121,7 +29,41 @@ export default function LandingSchedulePage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Semua Status');
   const [selectedLocation, setSelectedLocation] = useState('Semua Lokasi');
-  const [filteredSchedules, setFilteredSchedules] = useState(scheduleData);
+  const [scheduleData, setScheduleData] = useState<Schedule[]>([]);
+  const [locations, setLocations] = useState<string[]>(['Semua Lokasi']);
+  const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [schedulesRes, locationsRes] = await Promise.all([
+          fetch('/api/jadwal'),
+          fetch('/api/jadwal/locations')
+        ]);
+        
+        const schedulesData = await schedulesRes.json();
+        const locationsData = await locationsRes.json();
+        
+        const formattedSchedules = schedulesData.map((item: any) => ({
+          ...item,
+          tanggal: new Date(item.tanggal).toISOString().split('T')[0]
+        }));
+        
+        setScheduleData(formattedSchedules);
+        setFilteredSchedules(formattedSchedules);
+        setLocations(['Semua Lokasi', ...locationsData]);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -176,6 +118,16 @@ export default function LandingSchedulePage() {
     setSelectedStatus('Semua Status');
     setSelectedLocation('Semua Lokasi');
     setFilteredSchedules(scheduleData);
+  };
+
+  const handleViewDetail = (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSchedule(null);
   };
 
   return (
@@ -276,7 +228,12 @@ export default function LandingSchedulePage() {
           </p>
         </div>
 
-        {filteredSchedules.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Memuat jadwal...</p>
+          </div>
+        ) : filteredSchedules.length === 0 ? (
           <div className="text-center py-12">
             <Calendar size={64} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">
@@ -291,8 +248,8 @@ export default function LandingSchedulePage() {
             {filteredSchedules.map((schedule) => (
               <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <img 
-                  src={schedule.image} 
-                  alt={schedule.lokasi}
+                  src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
+                  alt={schedule.judul}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">
@@ -301,7 +258,7 @@ export default function LandingSchedulePage() {
                   </div>
                   
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    {schedule.lokasi}
+                    {schedule.judul}
                   </h3>
                   
                   <div className="space-y-2 text-gray-600 mb-4">
@@ -315,11 +272,14 @@ export default function LandingSchedulePage() {
                     </div>
                     <div className="flex items-center">
                       <MapPin size={16} className="mr-2 text-[#2622FF]" />
-                      <span className="text-sm">{schedule.tempat}</span>
+                      <span className="text-sm">{schedule.lokasi}</span>
                     </div>
                   </div>
                   
-                  <button className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-2 rounded-lg font-medium transition-colors">
+                  <button 
+                    onClick={() => handleViewDetail(schedule)}
+                    className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-2 rounded-lg font-medium transition-colors"
+                  >
                     Lihat Detail Lokasi
                   </button>
                 </div>
@@ -328,6 +288,12 @@ export default function LandingSchedulePage() {
           </div>
         )}
       </div>
+      
+      <LocationDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        schedule={selectedSchedule}
+      />
     </div>
   );
 }

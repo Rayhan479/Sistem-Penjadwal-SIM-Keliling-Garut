@@ -23,6 +23,16 @@ model Faq {
   updatedAt DateTime? @updatedAt
 }
 
+model ContactInfo {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  email     String
+  whatsapp  String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Pengumuman {
   id        Int      @id @default(autoincrement())
   judul     String
@@ -41,5 +51,24 @@ model Laporan {
   status    String   @default("selesai")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Jadwal {
+  id           Int      @id @default(autoincrement())
+  judul        String
+  deskripsi    String?
+  tanggal      DateTime
+  lokasi       String
+  alamatLengkap String?
+  latitude     Float?
+  longitude    Float?
+  gambar       String?
+  waktuMulai   String
+  waktuSelesai String
+  status       String   @default("terjadwal")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("jadwal")
 }
 

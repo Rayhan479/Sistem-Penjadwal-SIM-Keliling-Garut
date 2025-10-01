@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Mail, 
@@ -12,13 +12,12 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-
-const contactInfo = {
-  address: 'Jl. Jenderal Sudirman No. 123, Garut, Jawa Barat 44151',
-  email: 'info@simkelilinggarut.go.id',
-  phone: '(0262) 1500-000',
-  whatsapp: '+62 812-3456-7890'
-};
+interface ContactInfo {
+  phone: string;
+  email: string;
+  whatsapp: string;
+  address: string;
+}
 
 const workingHours = [
   { day: 'Senin - Jumat', hours: '08:00 - 16:00 WIB' },
@@ -49,6 +48,34 @@ const socialMedia = [
 ];
 
 export default function ContactPage() {
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    phone: '',
+    email: '',
+    whatsapp: '',
+    address: ''
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const response = await fetch('/api/contact');
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            setContactInfo(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching contact info:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContactInfo();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -72,65 +99,83 @@ export default function ContactPage() {
                 Informasi Kontak
               </h2>
               
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <MapPin className="text-[#2622FF]" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Alamat</h3>
-                    <p className="text-gray-600 leading-relaxed">{contactInfo.address}</p>
-                  </div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Memuat informasi kontak...</p>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <MapPin className="text-[#2622FF]" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 mb-1">Alamat</h3>
+                      <p className="text-gray-600 leading-relaxed">{contactInfo.address || 'Alamat tidak tersedia'}</p>
+                    </div>
+                  </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Mail className="text-[#2622FF]" size={24} />
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <Mail className="text-[#2622FF]" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
+                      {contactInfo.email ? (
+                        <a 
+                          href={`mailto:${contactInfo.email}`}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {contactInfo.email}
+                        </a>
+                      ) : (
+                        <p className="text-gray-500">Email tidak tersedia</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
-                    <a 
-                      href={`mailto:${contactInfo.email}`}
-                      className="text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      {contactInfo.email}
-                    </a>
-                  </div>
-                </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Phone className="text-[#2622FF]" size={24} />
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <Phone className="text-[#2622FF]" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 mb-1">Telepon</h3>
+                      {contactInfo.phone ? (
+                        <a 
+                          href={`tel:${contactInfo.phone}`}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {contactInfo.phone}
+                        </a>
+                      ) : (
+                        <p className="text-gray-500">Telepon tidak tersedia</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Telepon</h3>
-                    <a 
-                      href={`tel:${contactInfo.phone}`}
-                      className="text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      {contactInfo.phone}
-                    </a>
-                  </div>
-                </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <MessageCircle className="text-green-600" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">WhatsApp</h3>
-                    <a 
-                      href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-green-600 hover:text-green-800 transition-colors flex items-center"
-                    >
-                      {contactInfo.whatsapp}
-                      <ExternalLink size={16} className="ml-1" />
-                    </a>
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-green-100 p-3 rounded-lg">
+                      <MessageCircle className="text-green-600" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 mb-1">WhatsApp</h3>
+                      {contactInfo.whatsapp ? (
+                        <a 
+                          href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-800 transition-colors flex items-center"
+                        >
+                          {contactInfo.whatsapp}
+                          <ExternalLink size={16} className="ml-1" />
+                        </a>
+                      ) : (
+                        <p className="text-gray-500">WhatsApp tidak tersedia</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-8">
@@ -198,12 +243,16 @@ export default function ContactPage() {
                 Lokasi Kantor
               </h2>
               
-              <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <MapPin size={48} className="mx-auto mb-4" />
-                  <p className="text-lg font-medium">Peta Lokasi</p>
-                  <p className="text-sm">Kantor SIM Keliling Garut</p>
-                </div>
+              <div className="rounded-lg overflow-hidden">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3958.4373766262215!2d107.89606617403983!3d-7.190831870577892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68b0e4175d5839%3A0x4e69e2f7ee0a2677!2sSAMSAT%20Garut!5e0!3m2!1sid!2sid!4v1759283309692!5m2!1sid!2sid" 
+                  width="100%" 
+                  height="300" 
+                  style={{border: 0}} 
+                  allowFullScreen 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
               
               <div className="mt-4">
