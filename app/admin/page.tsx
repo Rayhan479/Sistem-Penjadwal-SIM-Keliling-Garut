@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Car, Calendar, Users, FileText, MapPin, Megaphone } from 'lucide-react';
 import ReportModal from '@/app/admin/laporan/tambah/page';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
+import ScheduleModal from '@/app/admin/jadwal/tambah/page';
 
 
 
@@ -78,6 +79,19 @@ export default function MainContent() {
       setIsReportModalOpen(false);
     } catch (error) {
       console.error('Error saving report:', error);
+    }
+  };
+
+  const handleSaveSchedule = async (scheduleData: any) => {
+    try {
+      await fetch('/api/jadwal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scheduleData)
+      });
+      setIsScheduleModalOpen(false);
+    } catch (error) {
+      console.error('Error saving schedule:', error);
     }
   };
 
@@ -194,18 +208,22 @@ export default function MainContent() {
       </div>
       
       {/* Modals */}
+      <ScheduleModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        onSave={handleSaveSchedule}
+      />
+      
       <AnnouncementModal
         isOpen={isAnnouncementModalOpen}
         onClose={() => setIsAnnouncementModalOpen(false)}
         onSave={handleSaveAnnouncement}
-        editingAnnouncement={null}
       />
       
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSave={handleSaveReport}
-        editingReport={null}
       />
     </div>
   );

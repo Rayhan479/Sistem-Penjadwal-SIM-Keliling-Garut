@@ -145,7 +145,7 @@ export default function LandingSchedulePage() {
 
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-end">
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
