@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MapPin, Clock, AlertCircle, Upload, Image } from 'lucide-react';
+import { X, Calendar, MapPin, Clock, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import LocationMap from '@/components/LocationMap';
+import Image from 'next/image';
 
 interface Schedule {
   id: number;
@@ -330,7 +331,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
           {/* Gambar */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Image size={16} className="inline mr-2" />
+              <ImageIcon size={16} className="inline mr-2" />
               Gambar Lokasi (Opsional)
             </label>
             
@@ -351,7 +352,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
               </div>
             ) : (
               <div className="relative">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg border"

@@ -15,6 +15,7 @@ import {
 import LocationDetailModal from '@/components/LocationDetailModal';
 import SearchModal from '@/components/SearchModal';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
@@ -40,6 +41,11 @@ interface PengumumanItem {
   isi: string;
   gambar?: string;
   tanggal: string;
+}
+
+interface BoundaryMember {
+  type: string;
+  geometry?: Array<{ lat: number; lon: number }>;
 }
 
 const procedures = [
@@ -104,8 +110,8 @@ export default function HomePage() {
           const relation = boundaryData.elements[0];
           if (relation.members) {
             const coordinates = relation.members
-              .filter((member: any) => member.type === 'way' && member.geometry)
-              .map((member: any) => member.geometry.map((point: any) => [point.lat, point.lon]));
+              .filter((member: BoundaryMember) => member.type === 'way' && member.geometry)
+              .map((member: BoundaryMember) => member.geometry!.map((point: { lat: number; lon: number }) => [point.lat, point.lon]));
             
             if (coordinates.length > 0) {
               setGarutBoundary({
@@ -205,9 +211,11 @@ export default function HomePage() {
             ) : upcomingSchedules.length > 0 ? (
               upcomingSchedules.map((schedule) => (
                 <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <img 
+                  <Image 
                     src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
                     alt={schedule.judul}
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover"
                   />
                   <div className="p-6">
@@ -374,9 +382,11 @@ export default function HomePage() {
             {pengumuman.map((item) => (
               <div key={item.id} className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="md:w-1/3">
-                  <img 
+                  <Image 
                     src={item.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
                     alt={item.judul}
+                    width={400}
+                    height={192}
                     className="w-full h-48 md:h-full object-cover"
                   />
                 </div>

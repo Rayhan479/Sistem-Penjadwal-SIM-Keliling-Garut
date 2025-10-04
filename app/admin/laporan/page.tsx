@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, MapPin, FileText, FileDown, Filter } from 'lucide-react';
 import ReportModal from '@/app/admin/laporan/tambah/page';
 import * as XLSX from 'xlsx';
@@ -51,11 +51,7 @@ export default function ReportPage() {
     }
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       const response = await fetch('/api/laporan');
       const data = await response.json();
@@ -69,7 +65,11 @@ export default function ReportPage() {
     } catch (error) {
       console.error('Error fetching reports:', error);
     }
-  };
+  }, [filterPeriod]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const applyFilter = (reportsData: Report[], period: 'all' | 'weekly' | 'monthly') => {
     const now = new Date();

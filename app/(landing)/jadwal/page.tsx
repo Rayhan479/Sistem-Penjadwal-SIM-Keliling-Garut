@@ -47,7 +47,7 @@ export default function LandingSchedulePage() {
         const schedulesData = await schedulesRes.json();
         const locationsData = await locationsRes.json();
         
-        const formattedSchedules = schedulesData.map((item: any) => ({
+        const formattedSchedules = schedulesData.map((item: Schedule) => ({
           ...item,
           tanggal: new Date(item.tanggal).toISOString().split('T')[0]
         }));

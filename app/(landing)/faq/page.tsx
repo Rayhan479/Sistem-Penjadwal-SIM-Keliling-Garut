@@ -31,7 +31,7 @@ export default function FAQPage() {
       try {
         const response = await fetch('/api/faq');
         if (response.ok) {
-          const data = await response.json();
+          const data: FAQ[] = await response.json();
           setFaqs(data);
           
           // Extract unique categories

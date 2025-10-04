@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Calendar, MapPin, Users, AlertCircle } from 'lucide-react';
+import { X, Calendar, MapPin, Users, AlertCircle } from 'lucide-react';
 
 interface Report {
   id: number;

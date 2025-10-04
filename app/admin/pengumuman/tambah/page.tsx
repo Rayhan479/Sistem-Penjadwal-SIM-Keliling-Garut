@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Calendar, AlertCircle, Upload, Image } from 'lucide-react';
+import { X, FileText, Calendar, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface Announcement {
   id: number;
@@ -197,7 +198,7 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
           {/* Gambar */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Image size={16} className="inline mr-2" />
+              <ImageIcon size={16} className="inline mr-2" />
               Gambar Pengumuman (Opsional)
             </label>
             
@@ -218,7 +219,7 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
               </div>
             ) : (
               <div className="relative">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg border"

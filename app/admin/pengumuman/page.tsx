@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FileText, Calendar, Image } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Calendar, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 
 interface Announcement {
@@ -48,7 +49,7 @@ export default function AnnouncementPage() {
     try {
       const response = await fetch('/api/pengumuman');
       const data = await response.json();
-      setAnnouncements(data.map((item: any) => ({
+      setAnnouncements(data.map((item: Announcement) => ({
         ...item,
         tanggal: item.tanggal.split('T')[0]
       })));
@@ -167,14 +168,16 @@ export default function AnnouncementPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {announcement.gambar ? (
-                      <img
+                      <Image
                         src={announcement.gambar}
                         alt="Gambar pengumuman"
+                        width={64}
+                        height={48}
                         className="w-16 h-12 object-cover rounded-lg border"
                       />
                     ) : (
                       <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Image size={16} className="text-gray-400" />
+                        <ImageIcon size={16} className="text-gray-400" />
                       </div>
                     )}
                   </td>

@@ -1,7 +1,9 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MapPin, Clock, Calendar, Image } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit, Trash2, MapPin, Clock, Calendar, Image as ImageIcon } from 'lucide-react';
 import ScheduleModal from '@/app/admin/jadwal/tambah/page';
+import Image from 'next/image';
+
 
 interface Schedule {
   id: number;
@@ -26,18 +28,7 @@ export default function SchedulePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
-  useEffect(() => {
-    fetchSchedules();
-    
-    // Set up interval to check and update status every minute
-    const interval = setInterval(() => {
-      updateScheduleStatuses();
-    }, 60000); // Check every minute
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const updateScheduleStatuses = async () => {
+  const updateScheduleStatuses = useCallback(async () => {
     try {
       await fetch('/api/jadwal/update-status', {
         method: 'POST'
@@ -50,9 +41,9 @@ export default function SchedulePage() {
     } catch (error) {
       console.error('Error updating schedule statuses:', error);
     }
-  };
+  }, []);
 
-  const fetchSchedules = async () => {
+  const fetchSchedules = useCallback(async () => {
     try {
       const response = await fetch('/api/jadwal');
       const data = await response.json();
@@ -65,7 +56,18 @@ export default function SchedulePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [updateScheduleStatuses]);
+
+  useEffect(() => {
+    fetchSchedules();
+    
+    // Set up interval to check and update status every minute
+    const interval = setInterval(() => {
+      updateScheduleStatuses();
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [fetchSchedules, updateScheduleStatuses]);
 
   const handleAddSchedule = () => {
     setEditingSchedule(null);
@@ -269,14 +271,16 @@ export default function SchedulePage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {schedule.gambar ? (
-                      <img
+                      <Image
                         src={schedule.gambar}
                         alt="Gambar lokasi"
+                        width={64}
+                        height={48}
                         className="w-16 h-12 object-cover rounded-lg border"
                       />
                     ) : (
                       <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Image size={16} className="text-gray-400" />
+                        <ImageIcon size={16} className="text-gray-400" />
                       </div>
                     )}
                   </td>

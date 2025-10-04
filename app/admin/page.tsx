@@ -4,8 +4,18 @@ import { Car, Calendar, Users, FileText, MapPin, Megaphone } from 'lucide-react'
 import ReportModal from '@/app/admin/laporan/tambah/page';
 import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
 import ScheduleModal from '@/app/admin/jadwal/tambah/page';
+interface Laporan {
+  id: number;
+  tanggal: string;
+  lokasi: string;
+  jumlah: number;
+  status: string;
+}
 
-
+interface Jadwal {
+  id: number;
+  status: string;
+}
 
 export default function MainContent() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -17,7 +27,7 @@ export default function MainContent() {
     { title: 'Total Pengumuman', value: '0', icon: <Megaphone size={24} />, color: 'bg-purple-500' },
     { title: 'Laporan Selesai', value: '0', icon: <FileText size={24} />, color: 'bg-orange-500' },
   ]);
-  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [recentReports, setRecentReports] = useState<Laporan[]>([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -32,9 +42,9 @@ export default function MainContent() {
         const pengumumanData = await pengumumanRes.json();
         const laporanData = await laporanRes.json();
         
-        const totalLayanan = laporanData.reduce((sum: number, laporan: any) => sum + laporan.jumlah, 0);
-        const jadwalAktif = jadwalData.filter((jadwal: any) => jadwal.status === 'terjadwal' || jadwal.status === 'berlangsung').length;
-        const laporanSelesai = laporanData.filter((laporan: any) => laporan.status === 'selesai').length;
+        const totalLayanan = laporanData.reduce((sum: number, laporan: Laporan) => sum + laporan.jumlah, 0);
+        const jadwalAktif = jadwalData.filter((jadwal: Jadwal) => jadwal.status === 'terjadwal' || jadwal.status === 'berlangsung').length;
+        const laporanSelesai = laporanData.filter((laporan: Laporan) => laporan.status === 'selesai').length;
         
         setStats([
           { title: 'Total Layanan', value: totalLayanan.toString(), icon: <Car size={24} />, color: 'bg-blue-500' },
@@ -45,7 +55,7 @@ export default function MainContent() {
         
         // Fetch recent reports
         const sortedReports = laporanData
-          .sort((a: any, b: any) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+          .sort((a: Laporan, b: Laporan) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
           .slice(0, 5);
         setRecentReports(sortedReports);
       } catch (error) {
@@ -56,7 +66,7 @@ export default function MainContent() {
     fetchStats();
   }, []);
 
-  const handleSaveAnnouncement = async (announcementData: any) => {
+  const handleSaveAnnouncement = async (announcementData: unknown) => {
     try {
       await fetch('/api/pengumuman', {
         method: 'POST',
@@ -69,7 +79,7 @@ export default function MainContent() {
     }
   };
 
-  const handleSaveReport = async (reportData: any) => {
+  const handleSaveReport = async (reportData: unknown) => {
     try {
       await fetch('/api/laporan', {
         method: 'POST',
@@ -82,7 +92,7 @@ export default function MainContent() {
     }
   };
 
-  const handleSaveSchedule = async (scheduleData: any) => {
+  const handleSaveSchedule = async (scheduleData: unknown) => {
     try {
       await fetch('/api/jadwal', {
         method: 'POST',
