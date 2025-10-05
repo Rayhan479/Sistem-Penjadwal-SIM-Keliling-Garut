@@ -13,7 +13,8 @@ import {
   ExternalLink,
   User,
   Eye,
-  ArrowRight
+  ArrowRight,
+  Users
 } from 'lucide-react';
 import LocationDetailModal from '@/components/LocationDetailModal';
 import SearchModal from '@/components/SearchModal';
@@ -35,6 +36,7 @@ interface JadwalItem {
   longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
+  jumlahKuota: number;
   status: string;
   gambar?: string;
 }
@@ -327,6 +329,15 @@ export default function HomePage() {
                       <div className="flex items-center">
                         <MapPin size={16} className="mr-2" />
                         <span className="text-sm">{schedule.lokasi}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center text-gray-600">
+                        <Users size={16} className="mr-2" />
+                        <span className="text-sm font-medium">{schedule.jumlahKuota || 0} orang</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Kuota Tersedia
                       </div>
                     </div>
                     <button 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Search, Filter, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, Clock, Search, Filter, ChevronDown, Users } from 'lucide-react';
 import LocationDetailModal from '@/components/LocationDetailModal';
 
 interface Schedule {
@@ -13,6 +13,7 @@ interface Schedule {
   longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
+  jumlahKuota: number;
   status: string;
   gambar?: string;
 }
@@ -253,8 +254,12 @@ export default function LandingSchedulePage() {
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">
-                  <div className="mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     {getStatusBadge(schedule.status)}
+                    <div className="flex items-center text-gray-600">
+                      <Users size={16} className="mr-1" />
+                      <span className="text-sm font-medium">{schedule.jumlahKuota || 0}</span>
+                    </div>
                   </div>
                   
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">

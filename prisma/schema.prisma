@@ -65,6 +65,7 @@ model Jadwal {
   gambar       String?
   waktuMulai   String
   waktuSelesai String
+  jumlahKuota  Int      @default(100)  
   status       String   @default("terjadwal")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

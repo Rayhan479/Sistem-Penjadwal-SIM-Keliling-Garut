@@ -15,6 +15,7 @@ interface Schedule {
   longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
+  jumlahKuota: number;
   status: string;
   gambar?: string;
 }
@@ -208,10 +209,7 @@ export default function SchedulePage() {
                   Tanggal
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lokasi
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Alamat Lengkap
+                  Lokasi & Alamat Lengkap
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Lokasi Map
@@ -221,6 +219,9 @@ export default function SchedulePage() {
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Waktu Mulai & Selesai
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Jumlah Kuota
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -251,12 +252,11 @@ export default function SchedulePage() {
                       <MapPin size={14} className="text-gray-400 mr-2" />
                       {schedule.lokasi}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-700" title={schedule.alamatLengkap || '-'}>
                       {truncateText(schedule.alamatLengkap)}
                     </div>
                   </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-xs text-gray-600">
                       {schedule.latitude && schedule.longitude ? (
@@ -290,7 +290,11 @@ export default function SchedulePage() {
                       {schedule.waktuMulai} - {schedule.waktuSelesai}
                     </div>
                   </td>
-                  
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {schedule.jumlahKuota || 0} orang
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(schedule.status)}
                   </td>

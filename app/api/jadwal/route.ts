@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { judul, tanggal, lokasi, alamatLengkap, latitude, longitude, gambar, waktuMulai, waktuSelesai, status } = body;
+    const { judul, tanggal, lokasi, alamatLengkap, latitude, longitude, gambar, waktuMulai, waktuSelesai, jumlahKuota, status } = body;
 
     const jadwal = await prisma.jadwal.create({
       data: {
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         gambar,
         waktuMulai,
         waktuSelesai,
+        jumlahKuota: jumlahKuota ? parseInt(jumlahKuota) : 100,
         status: status || 'terjadwal'
       }
     });

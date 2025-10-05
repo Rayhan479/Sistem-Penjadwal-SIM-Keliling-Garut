@@ -13,6 +13,7 @@ interface Schedule {
   longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
+  jumlahKuota: number;
   status: string;
   gambar?: string;
 }
@@ -34,6 +35,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
     longitude: 107.9,
     waktuMulai: '',
     waktuSelesai: '',
+    jumlahKuota: 100,
     status: 'terjadwal',
     gambar: ''
   });
@@ -57,6 +59,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
         longitude: editingSchedule.longitude || 107.9,
         waktuMulai: editingSchedule.waktuMulai,
         waktuSelesai: editingSchedule.waktuSelesai,
+        jumlahKuota: editingSchedule.jumlahKuota || 100,
         status: editingSchedule.status,
         gambar: editingSchedule.gambar || ''
       });
@@ -71,6 +74,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
         longitude: 107.9,
         waktuMulai: '',
         waktuSelesai: '',
+        jumlahKuota: 100,
         status: 'terjadwal',
         gambar: ''
       });
@@ -309,6 +313,21 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
                 {errors.waktuSelesai}
               </p>
             )}
+          </div>
+
+          {/* Jumlah Kuota */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Jumlah Kuota
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.jumlahKuota}
+              onChange={(e) => handleInputChange('jumlahKuota', e.target.value)}
+              placeholder="Masukkan jumlah kuota"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
           {/* Status */}

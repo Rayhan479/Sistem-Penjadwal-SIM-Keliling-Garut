@@ -39,7 +39,7 @@ export async function PUT(
   try {
     const id = parseInt(params.id);
     const body = await request.json();
-    const { judul, tanggal, lokasi, alamatLengkap, latitude, longitude, gambar, waktuMulai, waktuSelesai, status } = body;
+    const { judul, tanggal, lokasi, alamatLengkap, latitude, longitude, gambar, waktuMulai, waktuSelesai, jumlahKuota, status } = body;
 
     const jadwal = await prisma.jadwal.update({
       where: { id },
@@ -53,6 +53,7 @@ export async function PUT(
         gambar,
         waktuMulai,
         waktuSelesai,
+        jumlahKuota: jumlahKuota ? parseInt(jumlahKuota) : 100,
         status
       }
     });
