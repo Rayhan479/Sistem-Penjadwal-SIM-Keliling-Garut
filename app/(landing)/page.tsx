@@ -10,10 +10,14 @@ import {
   FileCheck,
   CreditCard,
   Clock3,
-  ExternalLink
+  ExternalLink,
+  User,
+  Eye,
+  ArrowRight
 } from 'lucide-react';
 import LocationDetailModal from '@/components/LocationDetailModal';
 import SearchModal from '@/components/SearchModal';
+import AnnouncementDetail from '@/components/AnnouncementDetail';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
@@ -41,6 +45,10 @@ interface PengumumanItem {
   isi: string;
   gambar?: string;
   tanggal: string;
+  category?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  views?: number;
 }
 
 interface BoundaryMember {
@@ -84,6 +92,8 @@ export default function HomePage() {
   const [selectedSchedule, setSelectedSchedule] = useState<JadwalItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [showAnnouncementDetail, setShowAnnouncementDetail] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<PengumumanItem | null>(null);
   const [garutBoundary, setGarutBoundary] = useState<any>(null);
 
   useEffect(() => {
@@ -102,9 +112,11 @@ export default function HomePage() {
         setUpcomingSchedules(upcomingData);
         setLocations(['Semua Lokasi', ...locationsData]);
         // Process pengumuman data to handle HTML content
-        const processedPengumuman = pengumumanData.slice(0, 2).map((item: PengumumanItem) => ({
+        const processedPengumuman = pengumumanData.slice(0, 2).map((item: any) => ({
           ...item,
-          isi: item.isi.replace(/<[^>]*>/g, '').substring(0, 200) + '...' // Strip HTML and truncate
+          isi: item.isi.replace(/<[^>]*>/g, '').substring(0, 200) + '...', // Strip HTML and truncate
+          category: item.category || 'Pengumuman',
+          views: Math.floor(Math.random() * 3000) + 500
         }));
         setPengumuman(processedPengumuman);
         
@@ -149,6 +161,59 @@ export default function HomePage() {
     });
   };
 
+  const getRelativeTime = (updatedAt: string, content: string) => {
+    const now = new Date();
+    const updated = new Date(updatedAt);
+    const diffMs = now.getTime() - updated.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
+    
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const isToday = updated.toDateString() === today.toDateString();
+    const isYesterday = updated.toDateString() === yesterday.toDateString();
+    
+    if (diffMinutes < 60) {
+      return diffMinutes <= 1 ? '1 Menit' : `${diffMinutes} Menit`;
+    } else if (diffHours < 24 && isToday) {
+      return diffHours === 1 ? '1 Jam' : `${diffHours} Jam`;
+    } else if (isToday) {
+      return 'Hari ini';
+    } else if (isYesterday) {
+      return '1 hari lalu';
+    } else if (diffDays <= 7) {
+      return `${diffDays} hari lalu`;
+    } else if (diffWeeks < 4) {
+      return diffWeeks === 1 ? '1 minggu lalu' : `${diffWeeks} minggu lalu`;
+    } else if (diffMonths < 12) {
+      return diffMonths === 1 ? '1 bulan lalu' : `${diffMonths} bulan lalu`;
+    } else if (diffYears === 1) {
+      return 'setahun lalu';
+    } else if (diffYears > 1) {
+      return `${diffYears} tahun lalu`;
+    } else {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const wordCount = plainText.split(' ').length;
+      const readTime = Math.max(1, Math.ceil(wordCount / 200));
+      return `${readTime} menit`;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      'Pengumuman': 'bg-red-100 text-red-800',
+      'Pemberitahuan': 'bg-orange-100 text-orange-800',
+      'Informasi Penting': 'bg-purple-100 text-purple-800'
+    };
+    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
   const handleViewDetail = (schedule: JadwalItem) => {
     setSelectedSchedule(schedule);
     setIsModalOpen(true);
@@ -166,6 +231,31 @@ export default function HomePage() {
   const handleCloseSearchModal = () => {
     setIsSearchModalOpen(false);
   };
+
+  const handleReadAnnouncement = (announcement: PengumumanItem) => {
+    setSelectedAnnouncement({
+      ...announcement,
+      author: 'Admin SIM Keliling',
+      createdAt: announcement.createdAt || new Date().toISOString(),
+      updatedAt: announcement.updatedAt || new Date().toISOString()
+    });
+    setShowAnnouncementDetail(true);
+  };
+
+  const handleBackFromAnnouncement = () => {
+    setShowAnnouncementDetail(false);
+    setSelectedAnnouncement(null);
+  };
+
+  if (showAnnouncementDetail && selectedAnnouncement) {
+    return (
+      <AnnouncementDetail 
+        article={selectedAnnouncement as any}
+        onBack={handleBackFromAnnouncement}
+        relatedArticles={[]}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -396,18 +486,52 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="md:w-2/3 p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-3">{item.judul}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.isi}</p>
-                  <div className="mt-4">
-                    <a href="/pengumuman" className="text-[#2622FF] hover:text-blue-700 font-medium">
-                      Baca Selengkapnya →
-                    </a>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(item.category || 'Pengumuman')}`}>
+                      {item.category || 'Pengumuman'}
+                    </span>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Eye size={16} className="mr-1" />
+                      <span>{(item.views || 0).toLocaleString()}</span>
+                    </div>
                   </div>
+                  
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3">{item.judul}</h3>
+                  <p className="text-gray-600 leading-relaxed mb-4">{item.isi}</p>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <div className="flex items-center">
+                      <User size={16} className="mr-2" />
+                      <span>Admin SIM Keliling</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar size={16} className="mr-2" />
+                      <span>{formatDate(item.tanggal)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={16} className="mr-2" />
+                      <span>{item.updatedAt ? getRelativeTime(item.updatedAt, item.isi) : '5 menit'}</span>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleReadAnnouncement(item)}
+                    className="inline-flex items-center bg-[#2622FF] hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Baca Selengkapnya
+                    <ArrowRight size={16} className="ml-2" />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
+        <div className="text-center py-16">
+            <a href="/pengumuman" className="text-[#2622FF] hover:text-blue-900 font-medium flex items-center justify-center">
+              Lihat Pengumuman Lengkap
+              <ExternalLink size={16} className="ml-2" />
+            </a>
+          </div>
       </section>
 
       {/* Tentang Layanan Kami */}
