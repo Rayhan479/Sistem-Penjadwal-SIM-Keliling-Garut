@@ -17,6 +17,13 @@ interface FAQ {
   category: string;
 }
 
+interface Fee {
+  simA: number;
+  simB1: number;
+  simB2: number;
+  simC: number;
+}
+
 export default function SettingsPage() {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     phone: '',
@@ -26,12 +33,26 @@ export default function SettingsPage() {
   });
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fees, setFees] = useState<Fee>({
+    simA: 0,
+    simB1: 0,
+    simB2: 0,
+    simC: 0
+  });
+  const [isFeeEditing, setIsFeeEditing] = useState(false);
+  const [feeFormData, setFeeFormData] = useState<Fee>({
+    simA: 0,
+    simB1: 0,
+    simB2: 0,
+    simC: 0
+  });
 
   const fetchData = async () => {
     try {
-      const [faqResponse, contactResponse] = await Promise.all([
+      const [faqResponse, contactResponse, feeResponse] = await Promise.all([
         fetch('/api/faq'),
-        fetch('/api/contact')
+        fetch('/api/contact'),
+        fetch('/api/fees')
       ]);
       
       if (faqResponse.ok) {
@@ -41,16 +62,21 @@ export default function SettingsPage() {
         console.error('FAQ fetch failed:', faqResponse.status);
       }
       
-      console.log('Contact response status:', contactResponse.status);
       if (contactResponse.ok) {
         const contactData = await contactResponse.json();
-        console.log('Contact data received:', contactData);
         if (contactData) {
           setContactInfo(contactData);
         }
       } else {
-        const errorText = await contactResponse.text();
-        console.error('Contact fetch failed:', contactResponse.status, errorText);
+        console.error('Contact fetch failed:', contactResponse.status);
+      }
+      
+      if (feeResponse.ok) {
+        const feeData = await feeResponse.json();
+        setFees(feeData);
+        setFeeFormData(feeData);
+      } else {
+        console.error('Fee fetch failed:', feeResponse.status);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -102,6 +128,39 @@ export default function SettingsPage() {
 
   const handleContactInputChange = (field: keyof ContactInfo, value: string) => {
     setContactFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFeeEdit = () => {
+    setFeeFormData(fees);
+    setIsFeeEditing(true);
+  };
+
+  const handleFeeSave = async () => {
+    try {
+      const response = await fetch('/api/fees', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feeFormData)
+      });
+      
+      if (response.ok) {
+        const updatedFees = await response.json();
+        setFees(updatedFees);
+        setIsFeeEditing(false);
+      }
+    } catch (error) {
+      console.error('Error saving fees:', error);
+    }
+  };
+
+  const handleFeeCancel = () => {
+    setFeeFormData(fees);
+    setIsFeeEditing(false);
+  };
+
+  const handleFeeInputChange = (field: keyof Fee, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setFeeFormData(prev => ({ ...prev, [field]: numValue }));
   };
 
   const handleAddFAQ = () => {
@@ -288,6 +347,114 @@ export default function SettingsPage() {
               />
             ) : (
               <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.address}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Fee Management Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-800">Biaya SIM</h3>
+            {!isFeeEditing ? (
+              <button
+                onClick={handleFeeEdit}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+              >
+                <Edit size={16} />
+                <span>Edit</span>
+              </button>
+            ) : (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleFeeSave}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                >
+                  <Save size={16} />
+                  <span>Simpan</span>
+                </button>
+                <button
+                  onClick={handleFeeCancel}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* SIM A */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Biaya SIM A
+            </label>
+            {isFeeEditing ? (
+              <input
+                type="number"
+                value={feeFormData.simA}
+                onChange={(e) => handleFeeInputChange('simA', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simA.toLocaleString('id-ID')}</p>
+            )}
+          </div>
+
+          {/* SIM B1 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Biaya SIM B1
+            </label>
+            {isFeeEditing ? (
+              <input
+                type="number"
+                value={feeFormData.simB1}
+                onChange={(e) => handleFeeInputChange('simB1', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simB1.toLocaleString('id-ID')}</p>
+            )}
+          </div>
+
+          {/* SIM B2 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Biaya SIM B2
+            </label>
+            {isFeeEditing ? (
+              <input
+                type="number"
+                value={feeFormData.simB2}
+                onChange={(e) => handleFeeInputChange('simB2', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simB2.toLocaleString('id-ID')}</p>
+            )}
+          </div>
+
+          {/* SIM C */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Biaya SIM C
+            </label>
+            {isFeeEditing ? (
+              <input
+                type="number"
+                value={feeFormData.simC}
+                onChange={(e) => handleFeeInputChange('simC', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simC.toLocaleString('id-ID')}</p>
             )}
           </div>
         </div>

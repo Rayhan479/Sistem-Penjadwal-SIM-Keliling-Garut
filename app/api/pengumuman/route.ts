@@ -6,6 +6,16 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const pengumuman = await prisma.pengumuman.findMany({
+      select: {
+        id: true,
+        judul: true,
+        isi: true,
+        tanggal: true,
+        gambar: true,
+        category: true,
+        createdAt: true,
+        updatedAt: true
+      },
       orderBy: { tanggal: 'desc' }
     });
     return NextResponse.json(pengumuman);
@@ -17,15 +27,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { judul, tanggal, isi, gambar } = body;
+    const { judul, tanggal, isi, gambar, category } = body;
 
     const pengumuman = await prisma.pengumuman.create({
       data: {
         judul,
         tanggal: new Date(tanggal),
         isi,
-        gambar: gambar || null
-      }
+        gambar: gambar || null,
+        category: category || 'Pengumuman',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } 
     });
 
     return NextResponse.json(pengumuman, { status: 201 });

@@ -1,0 +1,35 @@
+/* Quill Content Styles */
+.ql-editor h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1rem !important;
+  margin-top: 1.5rem !important;
+}
+
+.ql-editor h2 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.75rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.ql-editor h3 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 1rem !important;
+}
+
+.ql-editor ol {
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.ql-editor ul {
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.ql-editor li {
+  margin-bottom: 0.25rem !important;
+}

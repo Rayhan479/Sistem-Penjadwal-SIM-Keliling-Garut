@@ -10,6 +10,7 @@ interface Announcement {
   tanggal: string;
   isi: string;
   gambar?: string;
+  category?: string;
 }
 
 export default function AnnouncementPage() {
@@ -49,12 +50,17 @@ export default function AnnouncementPage() {
     try {
       const response = await fetch('/api/pengumuman');
       const data = await response.json();
-      setAnnouncements(data.map((item: Announcement) => ({
-        ...item,
-        tanggal: item.tanggal.split('T')[0]
-      })));
+      if (Array.isArray(data)) {
+        setAnnouncements(data.map((item: Announcement) => ({
+          ...item,
+          tanggal: item.tanggal.split('T')[0]
+        })));
+      } else {
+        setAnnouncements([]);
+      }
     } catch (error) {
       console.error('Error fetching announcements:', error);
+      setAnnouncements([]);
     }
   };
 
@@ -95,8 +101,10 @@ export default function AnnouncementPage() {
   };
 
   const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    // Strip HTML tags for display
+    const plainText = text.replace(/<[^>]*>/g, '');
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength) + '...';
   };
 
   return (
@@ -139,6 +147,9 @@ export default function AnnouncementPage() {
                   Tanggal
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kategori
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Gambar
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -165,6 +176,11 @@ export default function AnnouncementPage() {
                         <div className="text-xs text-gray-500">{announcement.tanggal}</div>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {announcement.category || 'Pengumuman'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {announcement.gambar ? (

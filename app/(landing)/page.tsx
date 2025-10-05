@@ -101,7 +101,12 @@ export default function HomePage() {
         
         setUpcomingSchedules(upcomingData);
         setLocations(['Semua Lokasi', ...locationsData]);
-        setPengumuman(pengumumanData.slice(0, 2)); // Ambil 2 pengumuman terbaru
+        // Process pengumuman data to handle HTML content
+        const processedPengumuman = pengumumanData.slice(0, 2).map((item: PengumumanItem) => ({
+          ...item,
+          isi: item.isi.replace(/<[^>]*>/g, '').substring(0, 200) + '...' // Strip HTML and truncate
+        }));
+        setPengumuman(processedPengumuman);
         
         // Fetch Garut boundary
         const boundaryRes = await fetch('https://overpass-api.de/api/interpreter?data=[out:json];relation(14925429);out geom;');
@@ -371,11 +376,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Berita Terkini */}
+      {/* Pengumuman */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Berita Terkini</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Pengumuman</h2>
           </div>
           
           <div className="space-y-8">
@@ -393,6 +398,11 @@ export default function HomePage() {
                 <div className="md:w-2/3 p-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-3">{item.judul}</h3>
                   <p className="text-gray-600 leading-relaxed">{item.isi}</p>
+                  <div className="mt-4">
+                    <a href="/pengumuman" className="text-[#2622FF] hover:text-blue-700 font-medium">
+                      Baca Selengkapnya →
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}

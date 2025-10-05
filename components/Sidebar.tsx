@@ -6,6 +6,7 @@ import {
   FileText, 
   Settings,  
   X,
+  User,
   Car,
   LogOut
 } from 'lucide-react';
@@ -22,6 +23,7 @@ const menuItems: MenuItem[] = [
   { id: 'jadwal', label: 'Jadwal', icon: <Calendar size={20} /> },
   { id: 'pengumuman', label: 'Pengumuman', icon: <Megaphone size={20} /> },
   { id: 'laporan', label: 'Laporan', icon: <FileText size={20} /> },
+  { id: 'user', label: 'User Manajemen', icon: <User size={20} /> },
   { id: 'pengaturan', label: 'Pengaturan', icon: <Settings size={20} /> },
 ];
 

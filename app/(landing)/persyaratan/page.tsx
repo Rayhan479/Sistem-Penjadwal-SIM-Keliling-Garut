@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   CheckCircle, 
@@ -9,12 +9,10 @@ import {
   Users,
   Car,
   MessageCircle,
-  Phone,
-  Download,
   Eye,
-  Heart,
   Camera,
-  MapPin
+  MapPin,
+  Bike
 } from 'lucide-react';
 
 interface Requirement {
@@ -33,12 +31,12 @@ interface SimType {
   color: string;
 }
 
-const simTypes: SimType[] = [
+const defaultSimTypes: SimType[] = [
   {
     type: 'A',
     name: 'SIM A',
     description: 'Kendaraan bermotor roda empat (mobil)',
-    price: 'Rp 120.000',
+    price: '',
     icon: <Car size={32} />,
     color: 'bg-blue-500'
   },
@@ -46,24 +44,24 @@ const simTypes: SimType[] = [
     type: 'B1',
     name: 'SIM B1',
     description: 'Kendaraan bermotor roda dua (motor) di atas 250cc',
-    price: 'Rp 100.000',
-    icon: <Car size={32} />,
+    price: '',
+    icon: <Bike size={32} />,
     color: 'bg-green-500'
   },
   {
     type: 'B2',
     name: 'SIM B2',
     description: 'Kendaraan bermotor roda dua (motor) di bawah 250cc',
-    price: 'Rp 100.000',
-    icon: <Car size={32} />,
+    price: '',
+    icon: <Bike size={32} />,
     color: 'bg-purple-500'
   },
   {
     type: 'C',
     name: 'SIM C',
     description: 'Kendaraan bermotor umum',
-    price: 'Rp 75.000',
-    icon: <Car size={32} />,
+    price: '',
+    icon: <Bike size={32} />,
     color: 'bg-orange-500'
   }
 ];
@@ -194,6 +192,40 @@ const importantNotes = [
 
 export default function RequirementsPage() {
   const [activeTab, setActiveTab] = useState('persyaratan');
+  const [simTypes, setSimTypes] = useState<SimType[]>(defaultSimTypes);
+  const [loadingPrices, setLoadingPrices] = useState(true);
+
+  useEffect(() => {
+    const fetchFees = async () => {
+      try {
+        const response = await fetch('/api/fees');
+        if (response.ok) {
+          const fees = await response.json();
+          const updatedSimTypes = defaultSimTypes.map(sim => {
+            switch (sim.type) {
+              case 'A':
+                return { ...sim, price: `Rp ${fees.simA.toLocaleString('id-ID')}` };
+              case 'B1':
+                return { ...sim, price: `Rp ${fees.simB1.toLocaleString('id-ID')}` };
+              case 'B2':
+                return { ...sim, price: `Rp ${fees.simB2.toLocaleString('id-ID')}` };
+              case 'C':
+                return { ...sim, price: `Rp ${fees.simC.toLocaleString('id-ID')}` };
+              default:
+                return sim;
+            }
+          });
+          setSimTypes(updatedSimTypes);
+        }
+      } catch (error) {
+        console.error('Error fetching fees:', error);
+      } finally {
+        setLoadingPrices(false);
+      }
+    };
+
+    fetchFees();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -403,7 +435,11 @@ export default function RequirementsPage() {
                     {sim.description}
                   </p>
                   <div className="text-2xl font-bold text-blue-600">
-                    {sim.price}
+                    {loadingPrices ? (
+                      <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                    ) : (
+                      sim.price
+                    )}
                   </div>
                 </div>
               ))}

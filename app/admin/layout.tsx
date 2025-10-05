@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import AnnouncementPage from "@/app/admin/pengumuman/page";
 import SchedulePage from "@/app/admin/jadwal/page";
 import ReportPage from "@/app/admin/laporan/page";
+import UserManagementPage from "@/app/admin/user/page";
 import SettingsPage from "@/app/admin/pengaturan/page";
 import "../globals.css";
 import MainContent from "@/app/admin/page";
@@ -24,7 +25,8 @@ export default function AdminLayout() {
         return <SchedulePage />;
       case "pengumuman":
         return <AnnouncementPage />;
-      // Add other cases for different pages as needed
+      case "user":
+        return <UserManagementPage />;
       case "laporan":
         return <ReportPage />;
       case "pengaturan":

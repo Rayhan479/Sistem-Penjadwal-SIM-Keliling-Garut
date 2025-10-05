@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await request.json();
-    const { judul, tanggal, isi, gambar } = body;
+    const { judul, tanggal, isi, gambar, category } = body;
 
     const pengumuman = await prisma.pengumuman.update({
       where: { id: parseInt(params.id) },
@@ -14,8 +14,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         judul,
         tanggal: new Date(tanggal),
         isi,
-        gambar: gambar || null
-      }
+        gambar: gambar || null,
+        category: category || 'Pengumuman',
+        updatedAt: new Date()
+      } 
     });
 
     return NextResponse.json(pengumuman);

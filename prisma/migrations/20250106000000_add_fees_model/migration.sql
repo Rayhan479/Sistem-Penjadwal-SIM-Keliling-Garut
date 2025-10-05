@@ -1,0 +1,16 @@
+-- CreateTable
+CREATE TABLE "fees" (
+    "id" INTEGER NOT NULL DEFAULT 1,
+    "simA" INTEGER NOT NULL DEFAULT 120000,
+    "simB1" INTEGER NOT NULL DEFAULT 250000,
+    "simB2" INTEGER NOT NULL DEFAULT 250000,
+    "simC" INTEGER NOT NULL DEFAULT 200000,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "fees_pkey" PRIMARY KEY ("id")
+);
+
+-- Insert default fees
+INSERT INTO "fees" ("id", "simA", "simB1", "simB2", "simC", "createdAt", "updatedAt") 
+VALUES (1, 120000, 250000, 250000, 200000, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Calendar, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import QuillEditor from '../../../../components/QuillEditor';
 
 interface Announcement {
   id: number;
@@ -8,6 +9,7 @@ interface Announcement {
   tanggal: string;
   isi: string;
   gambar?: string;
+  category?: string;
 }
 
 interface AnnouncementModalProps {
@@ -22,7 +24,8 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
     judul: '',
     tanggal: '',
     isi: '',
-    gambar: ''
+    gambar: '',
+    category: 'Pengumuman'
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -34,7 +37,8 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
         judul: editingAnnouncement.judul,
         tanggal: editingAnnouncement.tanggal,
         isi: editingAnnouncement.isi,
-        gambar: editingAnnouncement.gambar || ''
+        gambar: editingAnnouncement.gambar || '',
+        category: editingAnnouncement.category || 'Pengumuman'
       });
       setPreviewUrl(editingAnnouncement.gambar || '');
     } else {
@@ -42,7 +46,8 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
         judul: '',
         tanggal: '',
         isi: '',
-        gambar: ''
+        gambar: '',
+        category: 'Pengumuman'
       });
       setPreviewUrl('');
     }
@@ -61,7 +66,8 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
       newErrors.tanggal = 'Tanggal harus diisi';
     }
 
-    if (!formData.isi.trim()) {
+    const textContent = formData.isi.replace(/<[^>]*>/g, '').trim();
+    if (!textContent) {
       newErrors.isi = 'Isi pengumuman harus diisi';
     }
 
@@ -178,14 +184,12 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Isi Pengumuman
             </label>
-            <textarea
+            <QuillEditor
               value={formData.isi}
-              onChange={(e) => handleInputChange('isi', e.target.value)}
+              onChange={(value) => handleInputChange('isi', value)}
               placeholder="Masukkan isi pengumuman..."
-              rows={6}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical ${
-                errors.isi ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className="min-h-[200px]"
+              hasError={!!errors.isi}
             />
             {errors.isi && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -193,6 +197,22 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
                 {errors.isi}
               </p>
             )}
+          </div>
+
+          {/* Kategori */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Kategori
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => handleInputChange('category', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="Pengumuman">Pengumuman</option>
+              <option value="Pemberitahuan">Pemberitahuan</option>
+              <option value="Informasi Penting">Informasi Penting</option>
+            </select>
           </div>
 
           {/* Gambar */}
@@ -222,6 +242,8 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
                 <Image
                   src={previewUrl}
                   alt="Preview"
+                  width={64}
+                  height={48}
                   className="w-full h-48 object-cover rounded-lg border"
                 />
                 <button

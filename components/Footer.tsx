@@ -1,5 +1,6 @@
 import React from 'react';
-import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Phone, Mail, MapPin} from 'lucide-react';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -26,11 +27,13 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Menu</h3>
             <ul className="space-y-2 text-blue-100">
-              <li><a href="/" className="hover:text-white transition-colors">Beranda</a></li>
-              <li><a href="/jadwal" className="hover:text-white transition-colors">Jadwal</a></li>
-              <li><a href="/persyaratan" className="hover:text-white transition-colors">Persyaratan</a></li>
-              <li><a href="/tentang" className="hover:text-white transition-colors">Tentang</a></li>
-              <li><a href="/kontak" className="hover:text-white transition-colors">Kontak</a></li>
+              <li><Link href="/" className="hover:text-white transition-colors">Beranda</Link></li>
+              <li><Link href="/jadwal" className="hover:text-white transition-colors">Jadwal</Link></li>
+              <li><Link href="/persyaratan" className="hover:text-white transition-colors">Persyaratan</Link></li>
+              <li><Link href="/tentang" className="hover:text-white transition-colors">Tentang</Link></li>
+              <li><Link href="/pengumuman" className="hover:text-white transition-colors">Pengumuman</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              {/* <li><Link href="/kontak" className="hover:text-white transition-colors">Kontak</Link></li> */}
             </ul>
           </div>
           
