@@ -1,8 +1,15 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FileText, Calendar, Image as ImageIcon } from 'lucide-react';
-import Image from 'next/image';
-import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  FileText,
+  Calendar,
+  Image as ImageIcon,
+} from "lucide-react";
+import Image from "next/image";
+import AnnouncementModal from "@/app/admin/pengumuman/modal/page";
 
 interface Announcement {
   id: number;
@@ -16,7 +23,8 @@ interface Announcement {
 export default function AnnouncementPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [editingAnnouncement, setEditingAnnouncement] =
+    useState<Announcement | null>(null);
 
   const handleAddAnnouncement = () => {
     setEditingAnnouncement(null);
@@ -24,7 +32,7 @@ export default function AnnouncementPage() {
   };
 
   const handleEdit = (id: number) => {
-    const announcement = announcements.find(a => a.id === id);
+    const announcement = announcements.find((a) => a.id === id);
     if (announcement) {
       setEditingAnnouncement(announcement);
       setIsModalOpen(true);
@@ -32,12 +40,12 @@ export default function AnnouncementPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
+    if (window.confirm("Apakah Anda yakin ingin menghapus pengumuman ini?")) {
       try {
-        await fetch(`/api/pengumuman/${id}`, { method: 'DELETE' });
+        await fetch(`/api/pengumuman/${id}`, { method: "DELETE" });
         fetchAnnouncements();
       } catch (error) {
-        console.error('Error deleting announcement:', error);
+        console.error("Error deleting announcement:", error);
       }
     }
   };
@@ -48,40 +56,44 @@ export default function AnnouncementPage() {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await fetch('/api/pengumuman');
+      const response = await fetch("/api/pengumuman");
       const data = await response.json();
       if (Array.isArray(data)) {
-        setAnnouncements(data.map((item: Announcement) => ({
-          ...item,
-          tanggal: item.tanggal.split('T')[0]
-        })));
+        setAnnouncements(
+          data.map((item: Announcement) => ({
+            ...item,
+            tanggal: item.tanggal.split("T")[0],
+          }))
+        );
       } else {
         setAnnouncements([]);
       }
     } catch (error) {
-      console.error('Error fetching announcements:', error);
+      console.error("Error fetching announcements:", error);
       setAnnouncements([]);
     }
   };
 
-  const handleSaveAnnouncement = async (announcementData: Omit<Announcement, 'id'>) => {
+  const handleSaveAnnouncement = async (
+    announcementData: Omit<Announcement, "id">
+  ) => {
     try {
       if (editingAnnouncement) {
         await fetch(`/api/pengumuman/${editingAnnouncement.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(announcementData)
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(announcementData),
         });
       } else {
-        await fetch('/api/pengumuman', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(announcementData)
+        await fetch("/api/pengumuman", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(announcementData),
         });
       }
       fetchAnnouncements();
     } catch (error) {
-      console.error('Error saving announcement:', error);
+      console.error("Error saving announcement:", error);
     }
   };
 
@@ -92,19 +104,19 @@ export default function AnnouncementPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const truncateText = (text: string, maxLength: number) => {
     // Strip HTML tags for display
-    const plainText = text.replace(/<[^>]*>/g, '');
+    const plainText = text.replace(/<[^>]*>/g, "");
     if (plainText.length <= maxLength) return plainText;
-    return plainText.substring(0, maxLength) + '...';
+    return plainText.substring(0, maxLength) + "...";
   };
 
   return (
@@ -117,7 +129,9 @@ export default function AnnouncementPage() {
               <FileText className="mr-3 text-blue-600" size={28} />
               Pengumuman
             </h1>
-            <p className="text-gray-600 mt-1">Kelola pengumuman layanan SIM Keliling</p>
+            <p className="text-gray-600 mt-1">
+              Kelola pengumuman layanan SIM Keliling
+            </p>
           </div>
           <button
             onClick={handleAddAnnouncement}
@@ -132,10 +146,14 @@ export default function AnnouncementPage() {
       {/* Announcements Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800">Daftar Pengumuman</h3>
-          <p className="text-sm text-gray-600 mt-1">Total {announcements.length} pengumuman</p>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Daftar Pengumuman
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Total {announcements.length} pengumuman
+          </p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -162,7 +180,10 @@ export default function AnnouncementPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {announcements.map((announcement) => (
-                <tr key={announcement.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={announcement.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       {announcement.judul}
@@ -172,14 +193,18 @@ export default function AnnouncementPage() {
                     <div className="flex items-center text-sm text-gray-700">
                       <Calendar size={14} className="text-gray-400 mr-2" />
                       <div>
-                        <div className="font-medium">{formatDate(announcement.tanggal)}</div>
-                        <div className="text-xs text-gray-500">{announcement.tanggal}</div>
+                        <div className="font-medium">
+                          {formatDate(announcement.tanggal)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {announcement.tanggal}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {announcement.category || 'Pengumuman'}
+                      {announcement.category || "Pengumuman"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

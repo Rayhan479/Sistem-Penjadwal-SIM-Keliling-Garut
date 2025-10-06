@@ -36,6 +36,8 @@ export default function LandingSchedulePage() {
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,6 +114,7 @@ export default function LandingSchedulePage() {
     }
 
     setFilteredSchedules(filtered);
+    setCurrentPage(1);
   };
 
   const resetFilter = () => {
@@ -119,6 +122,7 @@ export default function LandingSchedulePage() {
     setSelectedStatus('Semua Status');
     setSelectedLocation('Semua Lokasi');
     setFilteredSchedules(scheduleData);
+    setCurrentPage(1);
   };
 
   const handleViewDetail = (schedule: Schedule) => {
@@ -129,6 +133,15 @@ export default function LandingSchedulePage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSchedule(null);
+  };
+
+  const totalPages = Math.ceil(filteredSchedules.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSchedules = filteredSchedules.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -225,7 +238,7 @@ export default function LandingSchedulePage() {
             Daftar Jadwal SIM Keliling
           </h2>
           <p className="text-gray-600">
-            Menampilkan {filteredSchedules.length} dari {scheduleData.length} jadwal
+            Menampilkan {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredSchedules.length)} dari {filteredSchedules.length} jadwal
           </p>
         </div>
 
@@ -246,7 +259,7 @@ export default function LandingSchedulePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSchedules.map((schedule) => (
+            {paginatedSchedules.map((schedule) => (
               <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <img 
                   src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
@@ -258,7 +271,7 @@ export default function LandingSchedulePage() {
                     {getStatusBadge(schedule.status)}
                     <div className="flex items-center text-gray-600">
                       <Users size={16} className="mr-1" />
-                      <span className="text-sm font-medium">{schedule.jumlahKuota || 0}</span>
+                      <span className="text-sm font-medium">{schedule.jumlahKuota || 0} Kuota Tersedia </span>
                     </div>
                   </div>
                   
@@ -292,6 +305,42 @@ export default function LandingSchedulePage() {
             ))}
           </div>
         )}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-12">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 rounded-lg ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
+        
       </div>
       
       <LocationDetailModal

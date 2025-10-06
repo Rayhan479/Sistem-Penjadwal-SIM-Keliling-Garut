@@ -1,12 +1,14 @@
 import React from 'react';
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, User, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   onMenuToggle: () => void;
   currentPage: string;
+  user?: any;
+  onLogout?: () => void;
 }
 
-export default function Header({ onMenuToggle, currentPage }: HeaderProps) {
+export default function Header({ onMenuToggle, currentPage, user, onLogout }: HeaderProps) {
   const getPageTitle = (page: string) => {
     const titles = {
       beranda: 'Dashboard',
@@ -35,10 +37,23 @@ export default function Header({ onMenuToggle, currentPage }: HeaderProps) {
         </div>
         
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-2">
-            <User size={20} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-700 hidden sm:block">Admin</span>
+          <div className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-2">
+            <User size={18} className="text-gray-600" />
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium text-gray-700">{user?.name || 'Admin'}</p>
+              <p className="text-xs text-gray-500">{user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}</p>
+            </div>
           </div>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+              <span className="text-sm font-medium hidden sm:block">Logout</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

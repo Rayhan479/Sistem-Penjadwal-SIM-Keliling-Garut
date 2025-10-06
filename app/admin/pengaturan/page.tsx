@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save, MessageCircle } from 'lucide-react';
+import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save, MessageCircle, User, Lock } from 'lucide-react';
 import FAQModal from '@/app/admin/pengaturan/tambah/page';
 
 interface ContactInfo {
@@ -24,7 +24,17 @@ interface Fee {
   simC: number;
 }
 
-export default function SettingsPage() {
+interface UserProfile {
+  name: string;
+  email: string;
+  username: string;
+}
+
+interface SettingsPageProps {
+  userRole?: string;
+}
+
+export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     phone: '',
     email: '',
@@ -46,6 +56,24 @@ export default function SettingsPage() {
     simB2: 0,
     simC: 0
   });
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
+  const [userProfile, setUserProfile] = useState<UserProfile>({ name: '', email: '', username: '' });
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
+  const [profileFormData, setProfileFormData] = useState<UserProfile>({ name: '', email: '', username: '' });
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  React.useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setCurrentUserRole(data.user.role);
+          setUserProfile({ name: data.user.name, email: data.user.email, username: data.user.username });
+          setProfileFormData({ name: data.user.name, email: data.user.email, username: data.user.username });
+        }
+      });
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -226,6 +254,76 @@ export default function SettingsPage() {
     setEditingFAQ(null);
   };
 
+  const handleProfileEdit = () => {
+    setProfileFormData(userProfile);
+    setIsProfileEditing(true);
+  };
+
+  const handleProfileSave = async () => {
+    try {
+      const response = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileFormData)
+      });
+      
+      if (response.ok) {
+        const updatedProfile = await response.json();
+        setUserProfile(updatedProfile.user);
+        setIsProfileEditing(false);
+        alert('Profil berhasil diperbarui');
+      } else {
+        alert('Gagal memperbarui profil');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Terjadi kesalahan saat menyimpan profil');
+    }
+  };
+
+  const handleProfileCancel = () => {
+    setProfileFormData(userProfile);
+    setIsProfileEditing(false);
+  };
+
+  const handleProfileInputChange = (field: keyof UserProfile, value: string) => {
+    setProfileFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('Password baru dan konfirmasi password tidak cocok');
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      alert('Password baru minimal 6 karakter');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+      
+      if (response.ok) {
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setIsChangingPassword(false);
+        alert('Password berhasil diubah');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Gagal mengubah password');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert('Terjadi kesalahan saat mengubah password');
+    }
+  };
+
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -244,19 +342,178 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Contact Information Section */}
+      {/* User Profile Section - Available for All Roles */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">Informasi Kontak</h3>
-            {!isContactEditing ? (
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <User className="mr-2 text-blue-600" size={20} />
+              Profil Pengguna
+            </h3>
+            {!isProfileEditing ? (
               <button
-                onClick={handleContactEdit}
+                onClick={handleProfileEdit}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Edit size={16} />
                 <span>Edit</span>
               </button>
+            ) : (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleProfileSave}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                >
+                  <Save size={16} />
+                  <span>Simpan</span>
+                </button>
+                <button
+                  onClick={handleProfileCancel}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nama Lengkap
+            </label>
+            {isProfileEditing ? (
+              <input
+                type="text"
+                value={profileFormData.name}
+                onChange={(e) => handleProfileInputChange('name', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.name}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            {isProfileEditing ? (
+              <input
+                type="email"
+                value={profileFormData.email}
+                onChange={(e) => handleProfileInputChange('email', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            ) : (
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.email}</p>
+            )}
+          </div>
+
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Username
+            </label>
+            <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.username}</p>
+            <p className="text-xs text-gray-500 mt-1">Username tidak dapat diubah</p>
+          </div>
+
+          {/* Change Password */}
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-gray-800 flex items-center">
+                <Lock className="mr-2 text-blue-600" size={16} />
+                Ubah Password
+              </h4>
+              {!isChangingPassword && (
+                <button
+                  onClick={() => setIsChangingPassword(true)}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Ubah Password
+                </button>
+              )}
+            </div>
+
+            {isChangingPassword && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password Saat Ini
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Masukkan password saat ini"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password Baru
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Minimal 6 karakter"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Konfirmasi Password Baru
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ulangi password baru"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handlePasswordChange}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Simpan Password
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsChangingPassword(false);
+                      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Information Section - Only for Super Admin */}
+      {currentUserRole === 'super_admin' && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-800">Informasi Kontak</h3>
+            {!isContactEditing ? (
+                <button
+                  onClick={handleContactEdit}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                >
+                  <Edit size={16} />
+                  <span>Edit</span>
+                </button>
             ) : (
               <div className="flex space-x-2">
                 <button
@@ -351,36 +608,45 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      )}
 
-      {/* Fee Management Section */}
+      {/* Fee Management Section - Only for Super Admin */}
+      {currentUserRole === 'super_admin' && (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">Biaya SIM</h3>
-            {!isFeeEditing ? (
-              <button
-                onClick={handleFeeEdit}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-              >
-                <Edit size={16} />
-                <span>Edit</span>
-              </button>
-            ) : (
-              <div className="flex space-x-2">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Biaya SIM</h3>
+              {currentUserRole !== 'super_admin' && (
+                <p className="text-xs text-gray-500 mt-1">Hanya Super Admin yang dapat mengedit biaya</p>
+              )}
+            </div>
+            {currentUserRole === 'super_admin' && (
+              !isFeeEditing ? (
                 <button
-                  onClick={handleFeeSave}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                  onClick={handleFeeEdit}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
                 >
-                  <Save size={16} />
-                  <span>Simpan</span>
+                  <Edit size={16} />
+                  <span>Edit</span>
                 </button>
-                <button
-                  onClick={handleFeeCancel}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  Batal
-                </button>
-              </div>
+              ) : (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleFeeSave}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                  >
+                    <Save size={16} />
+                    <span>Simpan</span>
+                  </button>
+                  <button
+                    onClick={handleFeeCancel}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Batal
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
@@ -459,6 +725,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* FAQ Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">

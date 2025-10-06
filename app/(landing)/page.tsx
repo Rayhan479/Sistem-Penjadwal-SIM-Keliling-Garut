@@ -97,6 +97,7 @@ export default function HomePage() {
   const [showAnnouncementDetail, setShowAnnouncementDetail] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<PengumumanItem | null>(null);
   const [garutBoundary, setGarutBoundary] = useState<any>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,6 +113,7 @@ export default function HomePage() {
         const pengumumanData = await pengumumanRes.json();
         
         setUpcomingSchedules(upcomingData);
+        console.log('Upcoming schedules count:', upcomingData.length);
         setLocations(['Semua Lokasi', ...locationsData]);
         // Process pengumuman data to handle HTML content
         const processedPengumuman = pengumumanData.slice(0, 2).map((item: any) => ({
@@ -152,6 +154,16 @@ export default function HomePage() {
 
     fetchData();
   }, []);
+
+  // Auto slider for jadwal cards
+  useEffect(() => {
+    if (upcomingSchedules.length > 3) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % Math.ceil(upcomingSchedules.length / 3));
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [upcomingSchedules.length]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -213,7 +225,7 @@ export default function HomePage() {
       'Pemberitahuan': 'bg-orange-100 text-orange-800',
       'Informasi Penting': 'bg-purple-100 text-purple-800'
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[category as keyof typeof colors] || 'bg-green-100 text-green-800';
   };
 
   const handleViewDetail = (schedule: JadwalItem) => {
@@ -289,72 +301,99 @@ export default function HomePage() {
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {loading ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
-                  <div className="w-full h-48 bg-gray-300"></div>
-                  <div className="p-6">
-                    <div className="h-6 bg-gray-300 rounded mb-3"></div>
-                    <div className="space-y-2 mb-4">
-                      <div className="h-4 bg-gray-300 rounded"></div>
-                      <div className="h-4 bg-gray-300 rounded"></div>
-                      <div className="h-4 bg-gray-300 rounded"></div>
+          <div className="overflow-hidden mb-8">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {loading ? (
+                <div className="flex w-full">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="w-1/3 flex-shrink-0 px-4">
+                      <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                        <div className="w-full h-48 bg-gray-300"></div>
+                        <div className="p-6">
+                          <div className="h-6 bg-gray-300 rounded mb-3"></div>
+                          <div className="space-y-2 mb-4">
+                            <div className="h-4 bg-gray-300 rounded"></div>
+                            <div className="h-4 bg-gray-300 rounded"></div>
+                            <div className="h-4 bg-gray-300 rounded"></div>
+                          </div>
+                          <div className="h-10 bg-gray-300 rounded"></div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="h-10 bg-gray-300 rounded"></div>
-                  </div>
+                  ))}
                 </div>
-              ))
-            ) : upcomingSchedules.length > 0 ? (
-              upcomingSchedules.map((schedule) => (
-                <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <Image 
-                    src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
-                    alt={schedule.judul}
-                    width={400}
-                    height={192}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">{schedule.judul}</h3>
-                    <div className="space-y-2 text-gray-600 mb-4">
-                      <div className="flex items-center">
-                        <Calendar size={16} className="mr-2" />
-                        <span className="text-sm">{formatDate(schedule.tanggal)}</span>
+              ) : upcomingSchedules.length > 0 ? (
+                Array.from({ length: Math.ceil(upcomingSchedules.length / 3) }).map((_, slideIndex) => (
+                  <div key={slideIndex} className="w-full flex-shrink-0 grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+                    {upcomingSchedules.slice(slideIndex * 3, (slideIndex + 1) * 3).map((schedule) => (
+                      <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                        <Image 
+                          src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
+                          alt={schedule.judul}
+                          width={400}
+                          height={192}
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="p-6">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-3">{schedule.judul}</h3>
+                          <div className="space-y-2 text-gray-600 mb-4">
+                            <div className="flex items-center">
+                              <Calendar size={16} className="mr-2" />
+                              <span className="text-sm">{formatDate(schedule.tanggal)}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock size={16} className="mr-2" />
+                              <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin size={16} className="mr-2" />
+                              <span className="text-sm">{schedule.lokasi}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center text-gray-600">
+                              <Users size={16} className="mr-2" />
+                              <span className="text-sm font-medium">{schedule.jumlahKuota || 0} orang</span>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Kuota Tersedia
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleViewDetail(schedule)}
+                            className="w-full bg-[#2622FF] text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Lihat Lokasi Detail
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <Clock size={16} className="mr-2" />
-                        <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin size={16} className="mr-2" />
-                        <span className="text-sm">{schedule.lokasi}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center text-gray-600">
-                        <Users size={16} className="mr-2" />
-                        <span className="text-sm font-medium">{schedule.jumlahKuota || 0} orang</span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Kuota Tersedia
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => handleViewDetail(schedule)}
-                      className="w-full bg-[#2622FF] text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Lihat Lokasi Detail
-                    </button>
+                    ))}
                   </div>
+                ))
+              ) : (
+                <div className="w-full text-center py-8">
+                  <p className="text-gray-500">Tidak ada jadwal yang akan datang</p>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-gray-500">Tidak ada jadwal yang akan datang</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+          
+          {upcomingSchedules.length > 3 && (
+            <div className="flex justify-center space-x-2 mb-8">
+              {Array.from({ length: Math.ceil(upcomingSchedules.length / 3) }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    currentSlide === index ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
           
           <div className="text-center">
             <a href="/jadwal" className="text-[#2622FF] hover:text-blue-900 font-medium flex items-center justify-center">

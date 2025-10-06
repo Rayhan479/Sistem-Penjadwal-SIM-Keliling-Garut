@@ -32,9 +32,17 @@ interface SidebarProps {
   onToggle: () => void;
   currentPage: string;
   onPageChange: (page: string) => void;
+  userRole?: string;
 }
 
-export default function Sidebar({ isOpen, onToggle, currentPage, onPageChange }: SidebarProps) {
+export default function Sidebar({ isOpen, onToggle, currentPage, onPageChange, userRole }: SidebarProps) {
+  const filteredMenuItems = menuItems.filter(item => {
+    // Hide User Management for admin role
+    if (item.id === 'user' && userRole !== 'super_admin') {
+      return false;
+    }
+    return true;
+  });
 
   const handleMenuClick = (itemId: string) => {
     onPageChange(itemId);
@@ -84,7 +92,7 @@ export default function Sidebar({ isOpen, onToggle, currentPage, onPageChange }:
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleMenuClick(item.id)}

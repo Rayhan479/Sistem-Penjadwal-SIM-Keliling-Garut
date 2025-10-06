@@ -29,7 +29,7 @@ interface Article {
 
 
 
-const categories = ['Semua', 'Pengumuman', 'Pemberitahuan', 'Informasi Penting'];
+
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
@@ -40,6 +40,7 @@ export default function NewsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedDetailArticle, setSelectedDetailArticle] = useState<Article | null>(null);
+  const [categories, setCategories] = useState<string[]>(['Semua', 'Pengumuman', 'Pemberitahuan', 'Informasi Penting']);
   const itemsPerPage = 6;
 
   useEffect(() => {
@@ -69,6 +70,10 @@ export default function NewsPage() {
               };
             });
             setArticlesData(formattedArticles);
+            
+            // Extract unique categories
+            const uniqueCategories = ['Semua', ...Array.from(new Set(formattedArticles.map((article: any) => article.category)))].filter(Boolean);
+            setCategories(uniqueCategories);
           }
         }
       } catch (error) {
@@ -184,7 +189,7 @@ export default function NewsPage() {
       'Pemberitahuan': 'bg-orange-100 text-orange-800',
       'Informasi Penting': 'bg-purple-100 text-purple-800'
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[category as keyof typeof colors] || 'bg-green-100 text-green-800';
   };
 
   if (showDetail && selectedDetailArticle) {

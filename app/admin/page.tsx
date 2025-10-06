@@ -1,9 +1,16 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Car, Calendar, Users, FileText, MapPin, Megaphone } from 'lucide-react';
-import ReportModal from '@/app/admin/laporan/tambah/page';
-import AnnouncementModal from '@/app/admin/pengumuman/tambah/page';
-import ScheduleModal from '@/app/admin/jadwal/tambah/page';
+import React, { useState, useEffect } from "react";
+import {
+  Car,
+  Calendar,
+  Users,
+  FileText,
+  MapPin,
+  Megaphone,
+} from "lucide-react";
+import ReportModal from "@/app/admin/laporan/tambah/page";
+import AnnouncementModal from "@/app/admin/pengumuman/modal/page";
+import ScheduleModal from "@/app/admin/jadwal/tambah/page";
 interface Laporan {
   id: number;
   tanggal: string;
@@ -22,10 +29,30 @@ export default function MainContent() {
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [stats, setStats] = useState([
-    { title: 'Total Layanan', value: '0', icon: <Car size={24} />, color: 'bg-blue-500' },
-    { title: 'Jadwal Aktif', value: '0', icon: <Calendar size={24} />, color: 'bg-green-500' },
-    { title: 'Total Pengumuman', value: '0', icon: <Megaphone size={24} />, color: 'bg-purple-500' },
-    { title: 'Laporan Selesai', value: '0', icon: <FileText size={24} />, color: 'bg-orange-500' },
+    {
+      title: "Total Layanan",
+      value: "0",
+      icon: <Car size={24} />,
+      color: "bg-blue-500",
+    },
+    {
+      title: "Jadwal Aktif",
+      value: "0",
+      icon: <Calendar size={24} />,
+      color: "bg-green-500",
+    },
+    {
+      title: "Total Pengumuman",
+      value: "0",
+      icon: <Megaphone size={24} />,
+      color: "bg-purple-500",
+    },
+    {
+      title: "Laporan Selesai",
+      value: "0",
+      icon: <FileText size={24} />,
+      color: "bg-orange-500",
+    },
   ]);
   const [recentReports, setRecentReports] = useState<Laporan[]>([]);
 
@@ -33,75 +60,106 @@ export default function MainContent() {
     const fetchStats = async () => {
       try {
         const [jadwalRes, pengumumanRes, laporanRes] = await Promise.all([
-          fetch('/api/jadwal'),
-          fetch('/api/pengumuman'),
-          fetch('/api/laporan')
+          fetch("/api/jadwal"),
+          fetch("/api/pengumuman"),
+          fetch("/api/laporan"),
         ]);
-        
+
         const jadwalData = await jadwalRes.json();
         const pengumumanData = await pengumumanRes.json();
         const laporanData = await laporanRes.json();
-        
-        const totalLayanan = laporanData.reduce((sum: number, laporan: Laporan) => sum + laporan.jumlah, 0);
-        const jadwalAktif = jadwalData.filter((jadwal: Jadwal) => jadwal.status === 'terjadwal' || jadwal.status === 'berlangsung').length;
-        const laporanSelesai = laporanData.filter((laporan: Laporan) => laporan.status === 'selesai').length;
-        
+
+        const totalLayanan = laporanData.reduce(
+          (sum: number, laporan: Laporan) => sum + laporan.jumlah,
+          0
+        );
+        const jadwalAktif = jadwalData.filter(
+          (jadwal: Jadwal) =>
+            jadwal.status === "terjadwal" || jadwal.status === "berlangsung"
+        ).length;
+        const laporanSelesai = laporanData.filter(
+          (laporan: Laporan) => laporan.status === "selesai"
+        ).length;
+
         setStats([
-          { title: 'Total Layanan', value: totalLayanan.toString(), icon: <Car size={24} />, color: 'bg-blue-500' },
-          { title: 'Jadwal Aktif', value: jadwalAktif.toString(), icon: <Calendar size={24} />, color: 'bg-green-500' },
-          { title: 'Total Pengumuman', value: pengumumanData.length.toString(), icon: <Megaphone size={24} />, color: 'bg-purple-500' },
-          { title: 'Laporan Selesai', value: laporanSelesai.toString(), icon: <FileText size={24} />, color: 'bg-orange-500' },
+          {
+            title: "Total Layanan",
+            value: totalLayanan.toString(),
+            icon: <Car size={24} />,
+            color: "bg-blue-500",
+          },
+          {
+            title: "Jadwal Aktif",
+            value: jadwalAktif.toString(),
+            icon: <Calendar size={24} />,
+            color: "bg-green-500",
+          },
+          {
+            title: "Total Pengumuman",
+            value: pengumumanData.length.toString(),
+            icon: <Megaphone size={24} />,
+            color: "bg-purple-500",
+          },
+          {
+            title: "Laporan Selesai",
+            value: laporanSelesai.toString(),
+            icon: <FileText size={24} />,
+            color: "bg-orange-500",
+          },
         ]);
-        
+
         // Fetch recent reports
         const sortedReports = laporanData
-          .sort((a: Laporan, b: Laporan) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+          .sort(
+            (a: Laporan, b: Laporan) =>
+              new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()
+          )
           .slice(0, 5);
         setRecentReports(sortedReports);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error("Error fetching stats:", error);
       }
     };
-    
+
     fetchStats();
   }, []);
 
   const handleSaveAnnouncement = async (announcementData: unknown) => {
     try {
-      await fetch('/api/pengumuman', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(announcementData)
+      await fetch("/api/pengumuman", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(announcementData),
       });
       setIsAnnouncementModalOpen(false);
     } catch (error) {
-      console.error('Error saving announcement:', error);
+      console.error("Error saving announcement:", error);
     }
   };
 
   const handleSaveReport = async (reportData: unknown) => {
     try {
-      await fetch('/api/laporan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reportData)
+      await fetch("/api/laporan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reportData),
       });
       setIsReportModalOpen(false);
     } catch (error) {
-      console.error('Error saving report:', error);
+      console.error("Error saving report:", error);
     }
   };
 
   const handleSaveSchedule = async (scheduleData: unknown) => {
     try {
-      await fetch('/api/jadwal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scheduleData)
+      await fetch("/api/jadwal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(scheduleData),
       });
       setIsScheduleModalOpen(false);
     } catch (error) {
-      console.error('Error saving schedule:', error);
+      console.error("Error saving schedule:", error);
     }
   };
 
@@ -110,12 +168,18 @@ export default function MainContent() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div
+            key={index}
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-shadow"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                
+                <p className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {stat.value}
+                </p>
               </div>
               <div className={`${stat.color} p-3 rounded-lg text-white`}>
                 {stat.icon}
@@ -130,7 +194,9 @@ export default function MainContent() {
         {/* Recent Reports Table */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">Laporan Terbaru</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Laporan Terbaru
+            </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -152,9 +218,12 @@ export default function MainContent() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentReports.map((report, index) => (
-                  <tr key={report.id || index} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={report.id || index}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {new Date(report.tanggal).toLocaleDateString('id-ID')}
+                      {new Date(report.tanggal).toLocaleDateString("id-ID")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex items-center">
@@ -169,13 +238,20 @@ export default function MainContent() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        report.status === 'selesai' ? 'bg-green-100 text-green-800' :
-                        report.status === 'berlangsung' ? 'bg-blue-100 text-blue-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {report.status === 'selesai' ? 'Selesai' :
-                         report.status === 'berlangsung' ? 'Berlangsung' : 'Dibatalkan'}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          report.status === "selesai"
+                            ? "bg-green-100 text-green-800"
+                            : report.status === "berlangsung"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {report.status === "selesai"
+                          ? "Selesai"
+                          : report.status === "berlangsung"
+                          ? "Berlangsung"
+                          : "Dibatalkan"}
                       </span>
                     </td>
                   </tr>
@@ -185,51 +261,50 @@ export default function MainContent() {
           </div>
         </div>
 
-
-      
-
         {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 ">
           <div className="p-6 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800">Aksi Cepat</h3>
           </div>
           <div className="p-6 space-y-3 ">
-            <button 
+            <button
               onClick={() => setIsScheduleModalOpen(true)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-              <Calendar size={20}/>
-              <span>Buat Jadwal Baru</span> 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <Calendar size={20} />
+              <span>Buat Jadwal Baru</span>
             </button>
-            <button 
+            <button
               onClick={() => setIsAnnouncementModalOpen(true)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-              <Megaphone size={20}/>
+              className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <Megaphone size={20} />
               <span>Buat Pengumuman</span>
             </button>
-            <button 
+            <button
               onClick={() => setIsReportModalOpen(true)}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-              <FileText size={20}/>
-              <span>Buat Laporan</span> 
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <FileText size={20} />
+              <span>Buat Laporan</span>
             </button>
-            
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
       <ScheduleModal
         isOpen={isScheduleModalOpen}
         onClose={() => setIsScheduleModalOpen(false)}
         onSave={handleSaveSchedule}
       />
-      
+
       <AnnouncementModal
         isOpen={isAnnouncementModalOpen}
         onClose={() => setIsAnnouncementModalOpen(false)}
         onSave={handleSaveAnnouncement}
       />
-      
+
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}

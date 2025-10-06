@@ -205,14 +205,30 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
               Kategori
             </label>
             <select
-              value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={formData.category === 'Pengumuman' || formData.category === 'Pemberitahuan' || formData.category === 'Informasi Penting' ? formData.category : 'custom'}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  handleInputChange('category', '');
+                } else {
+                  handleInputChange('category', e.target.value);
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2"
             >
               <option value="Pengumuman">Pengumuman</option>
               <option value="Pemberitahuan">Pemberitahuan</option>
               <option value="Informasi Penting">Informasi Penting</option>
+              <option value="custom">Tambah Kategori Baru</option>
             </select>
+            {(formData.category !== 'Pengumuman' && formData.category !== 'Pemberitahuan' && formData.category !== 'Informasi Penting') && (
+              <input
+                type="text"
+                value={formData.category}
+                placeholder="Masukkan kategori baru"
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            )}
           </div>
 
           {/* Gambar */}

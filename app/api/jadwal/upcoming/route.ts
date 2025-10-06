@@ -21,7 +21,7 @@ export async function GET() {
       orderBy: {
         tanggal: 'asc'
       },
-      take: 3
+      take: 9
     });
 
     return NextResponse.json(upcomingJadwal);

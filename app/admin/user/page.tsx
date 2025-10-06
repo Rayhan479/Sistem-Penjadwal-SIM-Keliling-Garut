@@ -199,19 +199,7 @@ export default function UserManagementPage() {
     });
   };
 
-  const getRoleStats = () => {
-    const stats = users.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return [
-      { label: 'Total Users', value: users.length, color: 'bg-blue-500' },
-      { label: 'Aktif', value: users.filter(u => u.status === 'aktif').length, color: 'bg-green-500' },
-      { label: 'Admin', value: (stats.super_admin || 0) + (stats.admin || 0), color: 'bg-purple-500' },
-      { label: 'Petugas', value: (stats.operator || 0) + (stats.petugas || 0) + (stats.supervisor || 0), color: 'bg-orange-500' }
-    ];
-  };
+  
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -235,22 +223,7 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {getRoleStats().map((stat, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-              </div>
-              <div className={`${stat.color} p-3 rounded-lg text-white`}>
-                <Users size={24} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      
 
       {/* Search and Filter */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
