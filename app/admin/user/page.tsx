@@ -1,92 +1,48 @@
 "use client";
-import React, { useState } from 'react';
-import { Plus, CreditCard as Edit, Trash2, Users, Search, Filter, Eye, EyeOff, Shield, User, Mail, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Users, Search } from 'lucide-react';
 import UserModal from '@/app/admin/user/modal/page';
 
 interface User {
   id: number;
-  nama: string;
+  username: string;
+  name: string;
   email: string;
-  telepon: string;
   role: string;
-  status: string;
-  tanggalDibuat: string;
-  terakhirLogin: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const userData: User[] = [
-  {
-    id: 1,
-    nama: 'Admin Utama',
-    email: 'admin@simkelilinggarut.go.id',
-    telepon: '081234567890',
-    role: 'super_admin',
-    status: 'aktif',
-    tanggalDibuat: '2024-01-15',
-    terakhirLogin: '2025-01-20 09:30'
-  },
-  {
-    id: 2,
-    nama: 'Operator SIM Keliling',
-    email: 'operator1@simkelilinggarut.go.id',
-    telepon: '081234567891',
-    role: 'operator',
-    status: 'aktif',
-    tanggalDibuat: '2024-02-10',
-    terakhirLogin: '2025-01-20 08:15'
-  },
-  {
-    id: 3,
-    nama: 'Petugas Lapangan 1',
-    email: 'petugas1@simkelilinggarut.go.id',
-    telepon: '081234567892',
-    role: 'petugas',
-    status: 'aktif',
-    tanggalDibuat: '2024-03-05',
-    terakhirLogin: '2025-01-19 16:45'
-  },
-  {
-    id: 4,
-    nama: 'Petugas Lapangan 2',
-    email: 'petugas2@simkelilinggarut.go.id',
-    telepon: '081234567893',
-    role: 'petugas',
-    status: 'nonaktif',
-    tanggalDibuat: '2024-03-20',
-    terakhirLogin: '2025-01-18 14:20'
-  },
-  {
-    id: 5,
-    nama: 'Supervisor Operasional',
-    email: 'supervisor@simkelilinggarut.go.id',
-    telepon: '081234567894',
-    role: 'supervisor',
-    status: 'aktif',
-    tanggalDibuat: '2024-01-25',
-    terakhirLogin: '2025-01-20 07:30'
-  },
-  {
-    id: 6,
-    nama: 'Admin Jadwal',
-    email: 'jadwal@simkelilinggarut.go.id',
-    telepon: '081234567895',
-    role: 'admin',
-    status: 'aktif',
-    tanggalDibuat: '2024-04-12',
-    terakhirLogin: '2025-01-19 18:00'
-  }
-];
-
-const roleOptions = ['Semua Role', 'Super Admin', 'Admin', 'Supervisor', 'Operator', 'Petugas'];
+const roleOptions = ['Semua Role', 'Super Admin', 'Admin'];
 const statusOptions = ['Semua Status', 'Aktif', 'Nonaktif'];
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState(userData);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('Semua Role');
   const [selectedStatus, setSelectedStatus] = useState('Semua Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddUser = () => {
     setEditingUser(null);
@@ -101,44 +57,61 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     const user = users.find(u => u.id === id);
-    if (user && window.confirm(`Apakah Anda yakin ingin menghapus user "${user.nama}"?`)) {
-      setUsers(prev => prev.filter(user => user.id !== id));
+    if (user && window.confirm(`Apakah Anda yakin ingin menghapus user "${user.name}"?`)) {
+      try {
+        const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          fetchUsers();
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+      }
     }
   };
 
-  const handleToggleStatus = (id: number) => {
-    setUsers(prev => prev.map(user => 
-      user.id === id 
-        ? { ...user, status: user.status === 'aktif' ? 'nonaktif' : 'aktif' }
-        : user
-    ));
+  const handleToggleStatus = async (id: number) => {
+    const user = users.find(u => u.id === id);
+    if (user) {
+      try {
+        const response = await fetch(`/api/users/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...user, isActive: !user.isActive })
+        });
+        if (response.ok) {
+          fetchUsers();
+        }
+      } catch (error) {
+        console.error('Error toggling status:', error);
+      }
+    }
   };
 
-  const handleSaveUser = (userData: Omit<User, 'id' | 'tanggalDibuat' | 'terakhirLogin'>) => {
-    if (editingUser) {
-      // Update existing user
-      setUsers(prev => prev.map(user => 
-        user.id === editingUser.id 
-          ? { 
-              ...userData, 
-              id: editingUser.id,
-              tanggalDibuat: editingUser.tanggalDibuat,
-              terakhirLogin: editingUser.terakhirLogin
-            }
-          : user
-      ));
-    } else {
-      // Add new user
-      const newId = Math.max(...users.map(u => u.id)) + 1;
-      const currentDate = new Date().toISOString().split('T')[0];
-      setUsers(prev => [...prev, { 
-        ...userData, 
-        id: newId,
-        tanggalDibuat: currentDate,
-        terakhirLogin: '-'
-      }]);
+  const handleSaveUser = async (userData: any) => {
+    try {
+      if (editingUser) {
+        const response = await fetch(`/api/users/${editingUser.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+        if (response.ok) {
+          fetchUsers();
+        }
+      } else {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+        if (response.ok) {
+          fetchUsers();
+        }
+      }
+    } catch (error) {
+      console.error('Error saving user:', error);
     }
   };
 
@@ -148,12 +121,13 @@ export default function UserManagementPage() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.username.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'Semua Role' || 
                        user.role === selectedRole.toLowerCase().replace(' ', '_');
     const matchesStatus = selectedStatus === 'Semua Status' || 
-                         user.status === selectedStatus.toLowerCase();
+                         (selectedStatus === 'Aktif' ? user.isActive : !user.isActive);
     
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -161,13 +135,10 @@ export default function UserManagementPage() {
   const getRoleBadge = (role: string) => {
     const roleConfig = {
       super_admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Super Admin' },
-      admin: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Admin' },
-      supervisor: { bg: 'bg-green-100', text: 'text-green-800', label: 'Supervisor' },
-      operator: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Operator' },
-      petugas: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Petugas' }
+      admin: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Admin' }
     };
 
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.petugas;
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.admin;
     return (
       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}>
         {config.label}
@@ -175,27 +146,24 @@ export default function UserManagementPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (isActive: boolean) => {
     return (
       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-        status === 'aktif' 
+        isActive 
           ? 'bg-green-100 text-green-800' 
           : 'bg-red-100 text-red-800'
       }`}>
-        {status === 'aktif' ? 'Aktif' : 'Nonaktif'}
+        {isActive ? 'Aktif' : 'Nonaktif'}
       </span>
     );
   };
 
   const formatDate = (dateString: string) => {
-    if (dateString === '-') return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
 
@@ -294,7 +262,7 @@ export default function UserManagementPage() {
                   Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Terakhir Login
+                  Tanggal Dibuat
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Aksi
@@ -302,90 +270,81 @@ export default function UserManagementPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="bg-blue-100 p-2 rounded-full mr-3">
-                        <User size={16} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.nama}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ID: {user.id} • Dibuat: {formatDate(user.tanggalDibuat)}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-700">
-                      <div className="flex items-center mb-1">
-                        <Mail size={14} className="text-gray-400 mr-2" />
-                        {user.email}
-                      </div>
-                      <div className="flex items-center">
-                        <Phone size={14} className="text-gray-400 mr-2" />
-                        {user.telepon}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getRoleBadge(user.role)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(user.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {formatDate(user.terakhirLogin)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(user.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit User"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(user.id)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          user.status === 'aktif'
-                            ? 'text-orange-600 hover:bg-orange-50'
-                            : 'text-green-600 hover:bg-green-50'
-                        }`}
-                        title={user.status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan'}
-                      >
-                        {user.status === 'aktif' ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus User"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Memuat data...</p>
                   </td>
                 </tr>
-              ))}
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <Users size={64} className="mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                      Tidak ada user ditemukan
+                    </h3>
+                    <p className="text-gray-500">
+                      Coba ubah kata kunci pencarian atau filter
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="bg-blue-100 p-2 rounded-full mr-3">
+                          <Users size={16} className="text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            @{user.username}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-700">
+                        {user.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getRoleBadge(user.role)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(user.isActive)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {formatDate(user.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleEdit(user.id)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit User"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Hapus User"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <Users size={64} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              Tidak ada user ditemukan
-            </h3>
-            <p className="text-gray-500">
-              Coba ubah kata kunci pencarian atau filter
-            </p>
-          </div>
-        )}
       </div>
 
       {/* User Modal */}

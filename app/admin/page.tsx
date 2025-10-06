@@ -8,9 +8,9 @@ import {
   MapPin,
   Megaphone,
 } from "lucide-react";
-import ReportModal from "@/app/admin/laporan/tambah/page";
+import ReportModal from "@/app/admin/laporan/modal/page";
 import AnnouncementModal from "@/app/admin/pengumuman/modal/page";
-import ScheduleModal from "@/app/admin/jadwal/tambah/page";
+import ScheduleModal from "@/app/admin/jadwal/modal/page";
 interface Laporan {
   id: number;
   tanggal: string;

@@ -1,7 +1,20 @@
 "use client";
-import React, { useState } from 'react';
-import { Settings, Phone, Mail, MapPin, HelpCircle, Plus, Edit, Trash2, Save, MessageCircle, User, Lock } from 'lucide-react';
-import FAQModal from '@/app/admin/pengaturan/tambah/page';
+import React, { useState } from "react";
+import {
+  Settings,
+  Phone,
+  Mail,
+  MapPin,
+  HelpCircle,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  MessageCircle,
+  User,
+  Lock,
+} from "lucide-react";
+import FAQModal from "@/app/admin/pengaturan/modal/page";
 
 interface ContactInfo {
   phone: string;
@@ -36,10 +49,10 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
-    phone: '',
-    email: '',
-    whatsapp: '',
-    address: ''
+    phone: "",
+    email: "",
+    whatsapp: "",
+    address: "",
   });
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,30 +60,50 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
     simA: 0,
     simB1: 0,
     simB2: 0,
-    simC: 0
+    simC: 0,
   });
   const [isFeeEditing, setIsFeeEditing] = useState(false);
   const [feeFormData, setFeeFormData] = useState<Fee>({
     simA: 0,
     simB1: 0,
     simB2: 0,
-    simC: 0
+    simC: 0,
   });
-  const [currentUserRole, setCurrentUserRole] = useState<string>('');
-  const [userProfile, setUserProfile] = useState<UserProfile>({ name: '', email: '', username: '' });
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: "",
+    email: "",
+    username: "",
+  });
   const [isProfileEditing, setIsProfileEditing] = useState(false);
-  const [profileFormData, setProfileFormData] = useState<UserProfile>({ name: '', email: '', username: '' });
-  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [profileFormData, setProfileFormData] = useState<UserProfile>({
+    name: "",
+    email: "",
+    username: "",
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   React.useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
         if (data.user) {
           setCurrentUserRole(data.user.role);
-          setUserProfile({ name: data.user.name, email: data.user.email, username: data.user.username });
-          setProfileFormData({ name: data.user.name, email: data.user.email, username: data.user.username });
+          setUserProfile({
+            name: data.user.name,
+            email: data.user.email,
+            username: data.user.username,
+          });
+          setProfileFormData({
+            name: data.user.name,
+            email: data.user.email,
+            username: data.user.username,
+          });
         }
       });
   }, []);
@@ -78,36 +111,36 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   const fetchData = async () => {
     try {
       const [faqResponse, contactResponse, feeResponse] = await Promise.all([
-        fetch('/api/faq'),
-        fetch('/api/contact'),
-        fetch('/api/fees')
+        fetch("/api/faq"),
+        fetch("/api/contact"),
+        fetch("/api/fees"),
       ]);
-      
+
       if (faqResponse.ok) {
         const faqData = await faqResponse.json();
         setFAQs(faqData);
       } else {
-        console.error('FAQ fetch failed:', faqResponse.status);
+        console.error("FAQ fetch failed:", faqResponse.status);
       }
-      
+
       if (contactResponse.ok) {
         const contactData = await contactResponse.json();
         if (contactData) {
           setContactInfo(contactData);
         }
       } else {
-        console.error('Contact fetch failed:', contactResponse.status);
+        console.error("Contact fetch failed:", contactResponse.status);
       }
-      
+
       if (feeResponse.ok) {
         const feeData = await feeResponse.json();
         setFees(feeData);
         setFeeFormData(feeData);
       } else {
-        console.error('Fee fetch failed:', feeResponse.status);
+        console.error("Fee fetch failed:", feeResponse.status);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -120,10 +153,10 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   const [isFAQModalOpen, setIsFAQModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
   const [contactFormData, setContactFormData] = useState<ContactInfo>({
-    phone: '',
-    email: '',
-    whatsapp: '',
-    address: ''
+    phone: "",
+    email: "",
+    whatsapp: "",
+    address: "",
   });
 
   const handleContactEdit = () => {
@@ -133,19 +166,19 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const handleContactSave = async () => {
     try {
-      const response = await fetch('/api/contact', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contactFormData)
+      const response = await fetch("/api/contact", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contactFormData),
       });
-      
+
       if (response.ok) {
         const updatedContact = await response.json();
         setContactInfo(updatedContact);
         setIsContactEditing(false);
       }
     } catch (error) {
-      console.error('Error saving contact info:', error);
+      console.error("Error saving contact info:", error);
     }
   };
 
@@ -154,8 +187,11 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
     setIsContactEditing(false);
   };
 
-  const handleContactInputChange = (field: keyof ContactInfo, value: string) => {
-    setContactFormData(prev => ({ ...prev, [field]: value }));
+  const handleContactInputChange = (
+    field: keyof ContactInfo,
+    value: string
+  ) => {
+    setContactFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFeeEdit = () => {
@@ -165,19 +201,19 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const handleFeeSave = async () => {
     try {
-      const response = await fetch('/api/fees', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(feeFormData)
+      const response = await fetch("/api/fees", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feeFormData),
       });
-      
+
       if (response.ok) {
         const updatedFees = await response.json();
         setFees(updatedFees);
         setIsFeeEditing(false);
       }
     } catch (error) {
-      console.error('Error saving fees:', error);
+      console.error("Error saving fees:", error);
     }
   };
 
@@ -188,7 +224,7 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const handleFeeInputChange = (field: keyof Fee, value: string) => {
     const numValue = parseInt(value) || 0;
-    setFeeFormData(prev => ({ ...prev, [field]: numValue }));
+    setFeeFormData((prev) => ({ ...prev, [field]: numValue }));
   };
 
   const handleAddFAQ = () => {
@@ -197,7 +233,7 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   };
 
   const handleEditFAQ = (id: number) => {
-    const faq = faqs.find(f => f.id === id);
+    const faq = faqs.find((f) => f.id === id);
     if (faq) {
       setEditingFAQ(faq);
       setIsFAQModalOpen(true);
@@ -205,47 +241,47 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   };
 
   const handleDeleteFAQ = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus FAQ ini?')) {
+    if (window.confirm("Apakah Anda yakin ingin menghapus FAQ ini?")) {
       try {
         const response = await fetch(`/api/faq/${id}`, {
-          method: 'DELETE'
+          method: "DELETE",
         });
         if (response.ok) {
-          setFAQs(prev => prev.filter(faq => faq.id !== id));
+          setFAQs((prev) => prev.filter((faq) => faq.id !== id));
         }
       } catch (error) {
-        console.error('Error deleting FAQ:', error);
+        console.error("Error deleting FAQ:", error);
       }
     }
   };
 
-  const handleSaveFAQ = async (faqData: Omit<FAQ, 'id'>) => {
+  const handleSaveFAQ = async (faqData: Omit<FAQ, "id">) => {
     try {
       if (editingFAQ) {
         const response = await fetch(`/api/faq/${editingFAQ.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(faqData)
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(faqData),
         });
         if (response.ok) {
           const updatedFaq = await response.json();
-          setFAQs(prev => prev.map(faq => 
-            faq.id === editingFAQ.id ? updatedFaq : faq
-          ));
+          setFAQs((prev) =>
+            prev.map((faq) => (faq.id === editingFAQ.id ? updatedFaq : faq))
+          );
         }
       } else {
-        const response = await fetch('/api/faq', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(faqData)
+        const response = await fetch("/api/faq", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(faqData),
         });
         if (response.ok) {
           const newFaq = await response.json();
-          setFAQs(prev => [newFaq, ...prev]);
+          setFAQs((prev) => [newFaq, ...prev]);
         }
       }
     } catch (error) {
-      console.error('Error saving FAQ:', error);
+      console.error("Error saving FAQ:", error);
     }
   };
 
@@ -261,23 +297,23 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const handleProfileSave = async () => {
     try {
-      const response = await fetch('/api/auth/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileFormData)
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileFormData),
       });
-      
+
       if (response.ok) {
         const updatedProfile = await response.json();
         setUserProfile(updatedProfile.user);
         setIsProfileEditing(false);
-        alert('Profil berhasil diperbarui');
+        alert("Profil berhasil diperbarui");
       } else {
-        alert('Gagal memperbarui profil');
+        alert("Gagal memperbarui profil");
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Terjadi kesalahan saat menyimpan profil');
+      console.error("Error saving profile:", error);
+      alert("Terjadi kesalahan saat menyimpan profil");
     }
   };
 
@@ -286,47 +322,54 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
     setIsProfileEditing(false);
   };
 
-  const handleProfileInputChange = (field: keyof UserProfile, value: string) => {
-    setProfileFormData(prev => ({ ...prev, [field]: value }));
+  const handleProfileInputChange = (
+    field: keyof UserProfile,
+    value: string
+  ) => {
+    setProfileFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('Password baru dan konfirmasi password tidak cocok');
+      alert("Password baru dan konfirmasi password tidak cocok");
       return;
     }
     if (passwordData.newPassword.length < 6) {
-      alert('Password baru minimal 6 karakter');
+      alert("Password baru minimal 6 karakter");
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/change-password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/change-password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
+          newPassword: passwordData.newPassword,
+        }),
       });
-      
+
       if (response.ok) {
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
         setIsChangingPassword(false);
-        alert('Password berhasil diubah');
+        alert("Password berhasil diubah");
       } else {
         const data = await response.json();
-        alert(data.error || 'Gagal mengubah password');
+        alert(data.error || "Gagal mengubah password");
       }
     } catch (error) {
-      console.error('Error changing password:', error);
-      alert('Terjadi kesalahan saat mengubah password');
+      console.error("Error changing password:", error);
+      alert("Terjadi kesalahan saat mengubah password");
     }
   };
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return text.substring(0, maxLength) + "...";
   };
 
   return (
@@ -337,7 +380,9 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
           <Settings className="mr-3 text-blue-600" size={28} />
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Pengaturan</h1>
-            <p className="text-gray-600 mt-1">Kelola informasi kontak dan FAQ sistem</p>
+            <p className="text-gray-600 mt-1">
+              Kelola informasi kontak dan FAQ sistem
+            </p>
           </div>
         </div>
       </div>
@@ -377,7 +422,7 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             )}
           </div>
         </div>
-        
+
         <div className="p-6 space-y-4">
           {/* Name */}
           <div>
@@ -388,11 +433,15 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
               <input
                 type="text"
                 value={profileFormData.name}
-                onChange={(e) => handleProfileInputChange('name', e.target.value)}
+                onChange={(e) =>
+                  handleProfileInputChange("name", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.name}</p>
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                {userProfile.name}
+              </p>
             )}
           </div>
 
@@ -405,11 +454,15 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
               <input
                 type="email"
                 value={profileFormData.email}
-                onChange={(e) => handleProfileInputChange('email', e.target.value)}
+                onChange={(e) =>
+                  handleProfileInputChange("email", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.email}</p>
+              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                {userProfile.email}
+              </p>
             )}
           </div>
 
@@ -418,8 +471,12 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Username
             </label>
-            <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{userProfile.username}</p>
-            <p className="text-xs text-gray-500 mt-1">Username tidak dapat diubah</p>
+            <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+              {userProfile.username}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Username tidak dapat diubah
+            </p>
           </div>
 
           {/* Change Password */}
@@ -448,7 +505,12 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                   <input
                     type="password"
                     value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        currentPassword: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Masukkan password saat ini"
                   />
@@ -460,7 +522,12 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                   <input
                     type="password"
                     value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        newPassword: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Minimal 6 karakter"
                   />
@@ -472,7 +539,12 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                   <input
                     type="password"
                     value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        confirmPassword: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ulangi password baru"
                   />
@@ -487,7 +559,11 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                   <button
                     onClick={() => {
                       setIsChangingPassword(false);
-                      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                      setPasswordData({
+                        currentPassword: "",
+                        newPassword: "",
+                        confirmPassword: "",
+                      });
                     }}
                     className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                   >
@@ -501,130 +577,16 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
       </div>
 
       {/* Contact Information Section - Only for Super Admin */}
-      {currentUserRole === 'super_admin' && (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">Informasi Kontak</h3>
-            {!isContactEditing ? (
+      {currentUserRole === "super_admin" && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Informasi Kontak
+              </h3>
+              {!isContactEditing ? (
                 <button
                   onClick={handleContactEdit}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-                >
-                  <Edit size={16} />
-                  <span>Edit</span>
-                </button>
-            ) : (
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleContactSave}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-                >
-                  <Save size={16} />
-                  <span>Simpan</span>
-                </button>
-                <button
-                  onClick={handleContactCancel}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  Batal
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div className="p-6 space-y-4">
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone size={16} className="inline mr-2" />
-              Nomor Telepon
-            </label>
-            {isContactEditing ? (
-              <input
-                type="text"
-                value={contactFormData.phone}
-                onChange={(e) => handleContactInputChange('phone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.phone}</p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Mail size={16} className="inline mr-2" />
-              Email
-            </label>
-            {isContactEditing ? (
-              <input
-                type="email"
-                value={contactFormData.email}
-                onChange={(e) => handleContactInputChange('email', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.email}</p>
-            )}
-          </div>
-
-          {/* WhatsApp */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <MessageCircle size={16} className="inline mr-2" />
-              Nomor WhatsApp
-            </label>
-            {isContactEditing ? (
-              <input
-                type="text"
-                value={contactFormData.whatsapp}
-                onChange={(e) => handleContactInputChange('whatsapp', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.whatsapp}</p>
-            )}
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <MapPin size={16} className="inline mr-2" />
-              Alamat
-            </label>
-            {isContactEditing ? (
-              <textarea
-                value={contactFormData.address}
-                onChange={(e) => handleContactInputChange('address', e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.address}</p>
-            )}
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Fee Management Section - Only for Super Admin */}
-      {currentUserRole === 'super_admin' && (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Biaya SIM</h3>
-              {currentUserRole !== 'super_admin' && (
-                <p className="text-xs text-gray-500 mt-1">Hanya Super Admin yang dapat mengedit biaya</p>
-              )}
-            </div>
-            {currentUserRole === 'super_admin' && (
-              !isFeeEditing ? (
-                <button
-                  onClick={handleFeeEdit}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
                 >
                   <Edit size={16} />
@@ -633,98 +595,245 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
               ) : (
                 <div className="flex space-x-2">
                   <button
-                    onClick={handleFeeSave}
+                    onClick={handleContactSave}
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
                   >
                     <Save size={16} />
                     <span>Simpan</span>
                   </button>
                   <button
-                    onClick={handleFeeCancel}
+                    onClick={handleContactCancel}
                     className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                   >
                     Batal
                   </button>
                 </div>
-              )
-            )}
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Phone size={16} className="inline mr-2" />
+                Nomor Telepon
+              </label>
+              {isContactEditing ? (
+                <input
+                  type="text"
+                  value={contactFormData.phone}
+                  onChange={(e) =>
+                    handleContactInputChange("phone", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {contactInfo.phone}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Mail size={16} className="inline mr-2" />
+                Email
+              </label>
+              {isContactEditing ? (
+                <input
+                  type="email"
+                  value={contactFormData.email}
+                  onChange={(e) =>
+                    handleContactInputChange("email", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {contactInfo.email}
+                </p>
+              )}
+            </div>
+
+            {/* WhatsApp */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MessageCircle size={16} className="inline mr-2" />
+                Nomor WhatsApp
+              </label>
+              {isContactEditing ? (
+                <input
+                  type="text"
+                  value={contactFormData.whatsapp}
+                  onChange={(e) =>
+                    handleContactInputChange("whatsapp", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {contactInfo.whatsapp}
+                </p>
+              )}
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MapPin size={16} className="inline mr-2" />
+                Alamat
+              </label>
+              {isContactEditing ? (
+                <textarea
+                  value={contactFormData.address}
+                  onChange={(e) =>
+                    handleContactInputChange("address", e.target.value)
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {contactInfo.address}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-        
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* SIM A */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Biaya SIM A
-            </label>
-            {isFeeEditing ? (
-              <input
-                type="number"
-                value={feeFormData.simA}
-                onChange={(e) => handleFeeInputChange('simA', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simA.toLocaleString('id-ID')}</p>
-            )}
+      )}
+
+      {/* Fee Management Section - Only for Super Admin */}
+      {currentUserRole === "super_admin" && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Biaya SIM
+                </h3>
+                {currentUserRole !== "super_admin" && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Hanya Super Admin yang dapat mengedit biaya
+                  </p>
+                )}
+              </div>
+              {currentUserRole === "super_admin" &&
+                (!isFeeEditing ? (
+                  <button
+                    onClick={handleFeeEdit}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                  >
+                    <Edit size={16} />
+                    <span>Edit</span>
+                  </button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleFeeSave}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                    >
+                      <Save size={16} />
+                      <span>Simpan</span>
+                    </button>
+                    <button
+                      onClick={handleFeeCancel}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ))}
+            </div>
           </div>
 
-          {/* SIM B1 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Biaya SIM B1
-            </label>
-            {isFeeEditing ? (
-              <input
-                type="number"
-                value={feeFormData.simB1}
-                onChange={(e) => handleFeeInputChange('simB1', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simB1.toLocaleString('id-ID')}</p>
-            )}
-          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* SIM A */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biaya SIM A
+              </label>
+              {isFeeEditing ? (
+                <input
+                  type="number"
+                  value={feeFormData.simA}
+                  onChange={(e) => handleFeeInputChange("simA", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  Rp {fees.simA.toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
 
-          {/* SIM B2 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Biaya SIM B2
-            </label>
-            {isFeeEditing ? (
-              <input
-                type="number"
-                value={feeFormData.simB2}
-                onChange={(e) => handleFeeInputChange('simB2', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simB2.toLocaleString('id-ID')}</p>
-            )}
-          </div>
+            {/* SIM B1 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biaya SIM B1
+              </label>
+              {isFeeEditing ? (
+                <input
+                  type="number"
+                  value={feeFormData.simB1}
+                  onChange={(e) =>
+                    handleFeeInputChange("simB1", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  Rp {fees.simB1.toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
 
-          {/* SIM C */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Biaya SIM C
-            </label>
-            {isFeeEditing ? (
-              <input
-                type="number"
-                value={feeFormData.simC}
-                onChange={(e) => handleFeeInputChange('simC', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-              />
-            ) : (
-              <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">Rp {fees.simC.toLocaleString('id-ID')}</p>
-            )}
+            {/* SIM B2 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biaya SIM B2
+              </label>
+              {isFeeEditing ? (
+                <input
+                  type="number"
+                  value={feeFormData.simB2}
+                  onChange={(e) =>
+                    handleFeeInputChange("simB2", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  Rp {fees.simB2.toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
+
+            {/* SIM C */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biaya SIM C
+              </label>
+              {isFeeEditing ? (
+                <input
+                  type="number"
+                  value={feeFormData.simC}
+                  onChange={(e) => handleFeeInputChange("simC", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  Rp {fees.simC.toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* FAQ Section */}
@@ -736,7 +845,9 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                 <HelpCircle className="mr-2 text-blue-600" size={20} />
                 FAQ (Frequently Asked Questions)
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Total {faqs.length} pertanyaan</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Total {faqs.length} pertanyaan
+              </p>
             </div>
             <button
               onClick={handleAddFAQ}
@@ -747,7 +858,7 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             </button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -769,53 +880,64 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Memuat data...
                   </td>
                 </tr>
               ) : faqs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Belum ada FAQ
                   </td>
                 </tr>
-              ) : faqs.map((faq) => (
-                <tr key={faq.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {faq.question}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {faq.category || 'Umum'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-700 max-w-md">
-                      {truncateText(faq.answer, 100)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEditFAQ(faq.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFAQ(faq.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              ) : (
+                faqs.map((faq) => (
+                  <tr
+                    key={faq.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {faq.question}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {faq.category || "Umum"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 max-w-md">
+                        {truncateText(faq.answer, 100)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleEditFAQ(faq.id)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFAQ(faq.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

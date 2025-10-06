@@ -1,9 +1,16 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, MapPin, Clock, Calendar, Image as ImageIcon } from 'lucide-react';
-import ScheduleModal from '@/app/admin/jadwal/tambah/page';
-import Image from 'next/image';
-
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  MapPin,
+  Clock,
+  Calendar,
+  Image as ImageIcon,
+} from "lucide-react";
+import ScheduleModal from "@/app/admin/jadwal/modal/page";
+import Image from "next/image";
 
 interface Schedule {
   id: number;
@@ -20,40 +27,38 @@ interface Schedule {
   gambar?: string;
 }
 
-
-
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
   const updateScheduleStatuses = useCallback(async () => {
     try {
-      await fetch('/api/jadwal/update-status', {
-        method: 'POST'
+      await fetch("/api/jadwal/update-status", {
+        method: "POST",
       });
-      
+
       // Refresh schedules after status update
-      const response = await fetch('/api/jadwal');
+      const response = await fetch("/api/jadwal");
       const data = await response.json();
       setSchedules(data);
     } catch (error) {
-      console.error('Error updating schedule statuses:', error);
+      console.error("Error updating schedule statuses:", error);
     }
   }, []);
 
   const fetchSchedules = useCallback(async () => {
     try {
-      const response = await fetch('/api/jadwal');
+      const response = await fetch("/api/jadwal");
       const data = await response.json();
       setSchedules(data);
-      
+
       // Update statuses immediately after fetching
       setTimeout(() => updateScheduleStatuses(), 100);
     } catch (error) {
-      console.error('Error fetching schedules:', error);
+      console.error("Error fetching schedules:", error);
     } finally {
       setLoading(false);
     }
@@ -61,7 +66,7 @@ export default function SchedulePage() {
 
   useEffect(() => {
     fetchSchedules();
-    
+
     // Set up interval to check and update status every minute
     const interval = setInterval(() => {
       updateScheduleStatuses();
@@ -76,7 +81,7 @@ export default function SchedulePage() {
   };
 
   const handleEdit = (id: number) => {
-    const schedule = schedules.find(s => s.id === id);
+    const schedule = schedules.find((s) => s.id === id);
     if (schedule) {
       setEditingSchedule(schedule);
       setIsModalOpen(true);
@@ -84,39 +89,41 @@ export default function SchedulePage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+    if (window.confirm("Apakah Anda yakin ingin menghapus jadwal ini?")) {
       try {
-        await fetch(`/api/jadwal/${id}`, { method: 'DELETE' });
-        setSchedules(prev => prev.filter(schedule => schedule.id !== id));
+        await fetch(`/api/jadwal/${id}`, { method: "DELETE" });
+        setSchedules((prev) => prev.filter((schedule) => schedule.id !== id));
       } catch (error) {
-        console.error('Error deleting schedule:', error);
+        console.error("Error deleting schedule:", error);
       }
     }
   };
 
-  const handleSaveSchedule = async (scheduleData: Omit<Schedule, 'id'>) => {
+  const handleSaveSchedule = async (scheduleData: Omit<Schedule, "id">) => {
     try {
       if (editingSchedule) {
         const response = await fetch(`/api/jadwal/${editingSchedule.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(scheduleData)
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(scheduleData),
         });
         const updatedSchedule = await response.json();
-        setSchedules(prev => prev.map(schedule => 
-          schedule.id === editingSchedule.id ? updatedSchedule : schedule
-        ));
+        setSchedules((prev) =>
+          prev.map((schedule) =>
+            schedule.id === editingSchedule.id ? updatedSchedule : schedule
+          )
+        );
       } else {
-        const response = await fetch('/api/jadwal', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(scheduleData)
+        const response = await fetch("/api/jadwal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(scheduleData),
         });
         const newSchedule = await response.json();
-        setSchedules(prev => [...prev, newSchedule]);
+        setSchedules((prev) => [...prev, newSchedule]);
       }
     } catch (error) {
-      console.error('Error saving schedule:', error);
+      console.error("Error saving schedule:", error);
     }
   };
 
@@ -127,15 +134,29 @@ export default function SchedulePage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      terjadwal: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Terjadwal' },
-      berlangsung: { bg: 'bg-green-100', text: 'text-green-800', label: 'Berlangsung' },
-      selesai: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Selesai' },
-      dibatalkan: { bg: 'bg-red-100', text: 'text-red-800', label: 'Dibatalkan' }
+      terjadwal: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        label: "Terjadwal",
+      },
+      berlangsung: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        label: "Berlangsung",
+      },
+      selesai: { bg: "bg-gray-100", text: "text-gray-800", label: "Selesai" },
+      dibatalkan: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        label: "Dibatalkan",
+      },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}
+      >
         {config.label}
       </span>
     );
@@ -143,17 +164,19 @@ export default function SchedulePage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const truncateText = (text: string | undefined, maxLength: number = 30) => {
-    if (!text) return '-';
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    if (!text) return "-";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   if (loading) {
@@ -179,7 +202,9 @@ export default function SchedulePage() {
               <Calendar className="mr-3 text-blue-600" size={28} />
               Jadwal SIM Keliling
             </h1>
-            <p className="text-gray-600 mt-1">Kelola jadwal layanan SIM Keliling</p>
+            <p className="text-gray-600 mt-1">
+              Kelola jadwal layanan SIM Keliling
+            </p>
           </div>
           <button
             onClick={handleAddSchedule}
@@ -195,9 +220,11 @@ export default function SchedulePage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800">Daftar Jadwal</h3>
-          <p className="text-sm text-gray-600 mt-1">Total {schedules.length} jadwal</p>
+          <p className="text-sm text-gray-600 mt-1">
+            Total {schedules.length} jadwal
+          </p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -233,7 +260,10 @@ export default function SchedulePage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {schedules.map((schedule) => (
-                <tr key={schedule.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={schedule.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {schedule.judul}
@@ -252,11 +282,14 @@ export default function SchedulePage() {
                       <MapPin size={14} className="text-gray-400 mr-2" />
                       {schedule.lokasi}
                     </div>
-                    <div className="text-sm text-gray-700" title={schedule.alamatLengkap || '-'}>
+                    <div
+                      className="text-sm text-gray-700"
+                      title={schedule.alamatLengkap || "-"}
+                    >
                       {truncateText(schedule.alamatLengkap)}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-xs text-gray-600">
                       {schedule.latitude && schedule.longitude ? (

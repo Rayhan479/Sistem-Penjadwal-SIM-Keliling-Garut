@@ -1,8 +1,16 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, MapPin, FileText, FileDown, Filter } from 'lucide-react';
-import ReportModal from '@/app/admin/laporan/tambah/page';
-import * as XLSX from 'xlsx';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  MapPin,
+  FileText,
+  FileDown,
+  Filter,
+} from "lucide-react";
+import ReportModal from "@/app/admin/laporan/modal/page";
+import * as XLSX from "xlsx";
 
 interface Report {
   id: number;
@@ -25,7 +33,9 @@ export default function ReportPage() {
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
-  const [filterPeriod, setFilterPeriod] = useState<'all' | 'weekly' | 'monthly'>('all');
+  const [filterPeriod, setFilterPeriod] = useState<
+    "all" | "weekly" | "monthly"
+  >("all");
 
   const handleAddReport = () => {
     setEditingReport(null);
@@ -33,7 +43,7 @@ export default function ReportPage() {
   };
 
   const handleEdit = (id: number) => {
-    const report = reports.find(r => r.id === id);
+    const report = reports.find((r) => r.id === id);
     if (report) {
       setEditingReport(report);
       setIsModalOpen(true);
@@ -41,29 +51,29 @@ export default function ReportPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+    if (window.confirm("Apakah Anda yakin ingin menghapus laporan ini?")) {
       try {
-        await fetch(`/api/laporan/${id}`, { method: 'DELETE' });
+        await fetch(`/api/laporan/${id}`, { method: "DELETE" });
         fetchReports();
       } catch (error) {
-        console.error('Error deleting report:', error);
+        console.error("Error deleting report:", error);
       }
     }
   };
 
   const fetchReports = useCallback(async () => {
     try {
-      const response = await fetch('/api/laporan');
+      const response = await fetch("/api/laporan");
       const data = await response.json();
       const formattedReports = data.map((item: ApiReport) => ({
         ...item,
-        tanggal: item.tanggal.split('T')[0],
-        jumlah: item.jumlah.toString()
+        tanggal: item.tanggal.split("T")[0],
+        jumlah: item.jumlah.toString(),
       }));
       setReports(formattedReports);
       applyFilter(formattedReports, filterPeriod);
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      console.error("Error fetching reports:", error);
     }
   }, [filterPeriod]);
 
@@ -71,65 +81,90 @@ export default function ReportPage() {
     fetchReports();
   }, [fetchReports]);
 
-  const applyFilter = (reportsData: Report[], period: 'all' | 'weekly' | 'monthly') => {
+  const applyFilter = (
+    reportsData: Report[],
+    period: "all" | "weekly" | "monthly"
+  ) => {
     const now = new Date();
     let filtered = reportsData;
 
-    if (period === 'weekly') {
+    if (period === "weekly") {
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filtered = reportsData.filter(report => new Date(report.tanggal) >= oneWeekAgo);
-    } else if (period === 'monthly') {
-      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      filtered = reportsData.filter(report => new Date(report.tanggal) >= oneMonthAgo);
+      filtered = reportsData.filter(
+        (report) => new Date(report.tanggal) >= oneWeekAgo
+      );
+    } else if (period === "monthly") {
+      const oneMonthAgo = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        now.getDate()
+      );
+      filtered = reportsData.filter(
+        (report) => new Date(report.tanggal) >= oneMonthAgo
+      );
     }
 
     setFilteredReports(filtered);
   };
 
-  const handleFilterChange = (period: 'all' | 'weekly' | 'monthly') => {
+  const handleFilterChange = (period: "all" | "weekly" | "monthly") => {
     setFilterPeriod(period);
     applyFilter(reports, period);
   };
 
   const handleDownloadExcel = () => {
     const now = new Date();
-    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const monthlyReports = reports.filter(report => new Date(report.tanggal) >= oneMonthAgo);
-    
-    const excelData = monthlyReports.map(report => ({
-      'Tanggal': formatDate(report.tanggal),
-      'Lokasi': report.lokasi,
-      'Jumlah Dilayani': report.jumlah,
-      'Status': report.status === 'selesai' ? 'Selesai' : 
-               report.status === 'berlangsung' ? 'Berlangsung' : 'Dibatalkan'
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+    const monthlyReports = reports.filter(
+      (report) => new Date(report.tanggal) >= oneMonthAgo
+    );
+
+    const excelData = monthlyReports.map((report) => ({
+      Tanggal: formatDate(report.tanggal),
+      Lokasi: report.lokasi,
+      "Jumlah Dilayani": report.jumlah,
+      Status:
+        report.status === "selesai"
+          ? "Selesai"
+          : report.status === "berlangsung"
+          ? "Berlangsung"
+          : "Dibatalkan",
     }));
-    
+
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Bulanan');
-    
-    const fileName = `Laporan_SIM_Keliling_${now.getFullYear()}_${(now.getMonth() + 1).toString().padStart(2, '0')}.xlsx`;
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Bulanan");
+
+    const fileName = `Laporan_SIM_Keliling_${now.getFullYear()}_${(
+      now.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
-  const handleSaveReport = async (reportData: Omit<Report, 'id'>) => {
+  const handleSaveReport = async (reportData: Omit<Report, "id">) => {
     try {
       if (editingReport) {
         await fetch(`/api/laporan/${editingReport.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reportData)
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reportData),
         });
       } else {
-        await fetch('/api/laporan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reportData)
+        await fetch("/api/laporan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reportData),
         });
       }
       fetchReports();
     } catch (error) {
-      console.error('Error saving report:', error);
+      console.error("Error saving report:", error);
     }
   };
 
@@ -140,15 +175,29 @@ export default function ReportPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      terjadwal: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Terjadwal' },
-      berlangsung: { bg: 'bg-green-100', text: 'text-green-800', label: 'Berlangsung' },
-      selesai: { bg: 'bg-green-100', text: 'text-green-800', label: 'Selesai' },
-      dibatalkan: { bg: 'bg-red-100', text: 'text-red-800', label: 'Dibatalkan' }
+      terjadwal: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        label: "Terjadwal",
+      },
+      berlangsung: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        label: "Berlangsung",
+      },
+      selesai: { bg: "bg-green-100", text: "text-green-800", label: "Selesai" },
+      dibatalkan: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        label: "Dibatalkan",
+      },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}
+      >
         {config.label}
       </span>
     );
@@ -156,11 +205,11 @@ export default function ReportPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -174,26 +223,27 @@ export default function ReportPage() {
               <FileText className="mr-3 text-blue-600" size={28} />
               Laporan SIM Keliling
             </h1>
-            <p className="text-gray-600 mt-1">Kelola Laporan layanan SIM Keliling</p>
+            <p className="text-gray-600 mt-1">
+              Kelola Laporan layanan SIM Keliling
+            </p>
           </div>
-          <div className='flex space-x-3'>
+          <div className="flex space-x-3">
             <button
-                onClick={handleAddReport}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
+              onClick={handleAddReport}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
             >
-                <Plus size={20} />
-                <span>Tambah Laporan</span>
+              <Plus size={20} />
+              <span>Tambah Laporan</span>
             </button>
 
             <button
-                onClick={handleDownloadExcel}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
+              onClick={handleDownloadExcel}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
             >
-                <FileDown  size={20} />
-                <span>Unduh Laporan</span>
+              <FileDown size={20} />
+              <span>Unduh Laporan</span>
             </button>
           </div>
-          
         </div>
       </div>
 
@@ -201,28 +251,36 @@ export default function ReportPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center space-x-4">
           <Filter size={20} className="text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">Filter Periode:</span>
+          <span className="text-sm font-medium text-gray-700">
+            Filter Periode:
+          </span>
           <div className="flex space-x-2">
             <button
-              onClick={() => handleFilterChange('all')}
+              onClick={() => handleFilterChange("all")}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                filterPeriod === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                filterPeriod === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Semua
             </button>
             <button
-              onClick={() => handleFilterChange('weekly')}
+              onClick={() => handleFilterChange("weekly")}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                filterPeriod === 'weekly' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                filterPeriod === "weekly"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Mingguan
             </button>
             <button
-              onClick={() => handleFilterChange('monthly')}
+              onClick={() => handleFilterChange("monthly")}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                filterPeriod === 'monthly' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                filterPeriod === "monthly"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Bulanan
@@ -234,10 +292,14 @@ export default function ReportPage() {
       {/* Schedule Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800">Daftar Laporan</h3>
-          <p className="text-sm text-gray-600 mt-1">Menampilkan {filteredReports.length} dari {reports.length} laporan</p>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Daftar Laporan
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Menampilkan {filteredReports.length} dari {reports.length} laporan
+          </p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -261,7 +323,10 @@ export default function ReportPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={report.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {formatDate(report.tanggal)}

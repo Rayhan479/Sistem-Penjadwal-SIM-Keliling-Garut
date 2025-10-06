@@ -4,29 +4,29 @@ import { X, User, Mail, Phone, Shield, AlertCircle, Eye, EyeOff } from 'lucide-r
 
 interface User {
   id: number;
-  nama: string;
+  username: string;
+  name: string;
   email: string;
-  telepon: string;
   role: string;
-  status: string;
-  tanggalDibuat: string;
-  terakhirLogin: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: Omit<User, 'id' | 'tanggalDibuat' | 'terakhirLogin'>) => void;
+  onSave: (user: any) => void;
   editingUser?: User | null;
 }
 
 export default function UserModal({ isOpen, onClose, onSave, editingUser }: UserModalProps) {
   const [formData, setFormData] = useState({
-    nama: '',
+    username: '',
+    name: '',
     email: '',
-    telepon: '',
-    role: 'petugas',
-    status: 'aktif',
+    role: 'admin',
+    isActive: true,
     password: '',
     confirmPassword: ''
   });
@@ -37,21 +37,21 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
   useEffect(() => {
     if (editingUser) {
       setFormData({
-        nama: editingUser.nama,
+        username: editingUser.username,
+        name: editingUser.name,
         email: editingUser.email,
-        telepon: editingUser.telepon,
         role: editingUser.role,
-        status: editingUser.status,
+        isActive: editingUser.isActive,
         password: '',
         confirmPassword: ''
       });
     } else {
       setFormData({
-        nama: '',
+        username: '',
+        name: '',
         email: '',
-        telepon: '',
-        role: 'petugas',
-        status: 'aktif',
+        role: 'admin',
+        isActive: true,
         password: '',
         confirmPassword: ''
       });
@@ -64,11 +64,18 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // Username validation
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username harus diisi';
+    } else if (formData.username.trim().length < 3) {
+      newErrors.username = 'Username minimal 3 karakter';
+    }
+
     // Nama validation
-    if (!formData.nama.trim()) {
-      newErrors.nama = 'Nama harus diisi';
-    } else if (formData.nama.trim().length < 3) {
-      newErrors.nama = 'Nama minimal 3 karakter';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Nama harus diisi';
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = 'Nama minimal 3 karakter';
     }
 
     // Email validation
@@ -76,13 +83,6 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
       newErrors.email = 'Email harus diisi';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Format email tidak valid';
-    }
-
-    // Telepon validation
-    if (!formData.telepon.trim()) {
-      newErrors.telepon = 'Nomor telepon harus diisi';
-    } else if (!/^[0-9+\-\s()]+$/.test(formData.telepon)) {
-      newErrors.telepon = 'Format nomor telepon tidak valid';
     }
 
     // Password validation (only for new users or when password is provided)
@@ -106,14 +106,22 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
     e.preventDefault();
     
     if (validateForm()) {
-      const { password, confirmPassword, ...userData } = formData;
+      const { confirmPassword, ...userData } = formData;
+      // Only include password if it's provided
+      if (!userData.password) {
+        delete userData.password;
+      }
       onSave(userData);
       onClose();
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'isActive') {
+      setFormData(prev => ({ ...prev, [field]: value === 'true' }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -123,10 +131,7 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
 
   const roleOptions = [
     { value: 'super_admin', label: 'Super Admin' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'supervisor', label: 'Supervisor' },
-    { value: 'operator', label: 'Operator' },
-    { value: 'petugas', label: 'Petugas' }
+    { value: 'admin', label: 'Admin' }
   ];
 
   if (!isOpen) return null;
@@ -149,6 +154,30 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <User size={16} className="inline mr-2" />
+              Username
+            </label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => handleInputChange('username', e.target.value)}
+              placeholder="Masukkan username"
+              disabled={!!editingUser}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.username ? 'border-red-500' : 'border-gray-300'
+              } ${editingUser ? 'bg-gray-100' : ''}`}
+            />
+            {errors.username && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <AlertCircle size={14} className="mr-1" />
+                {errors.username}
+              </p>
+            )}
+          </div>
+
           {/* Nama */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -157,17 +186,17 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
             </label>
             <input
               type="text"
-              value={formData.nama}
-              onChange={(e) => handleInputChange('nama', e.target.value)}
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Masukkan nama lengkap"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.nama ? 'border-red-500' : 'border-gray-300'
+                errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {errors.nama && (
+            {errors.name && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
-                {errors.nama}
+                {errors.name}
               </p>
             )}
           </div>
@@ -195,28 +224,7 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
             )}
           </div>
 
-          {/* Telepon */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone size={16} className="inline mr-2" />
-              Nomor Telepon
-            </label>
-            <input
-              type="tel"
-              value={formData.telepon}
-              onChange={(e) => handleInputChange('telepon', e.target.value)}
-              placeholder="Masukkan nomor telepon"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.telepon ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errors.telepon && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <AlertCircle size={14} className="mr-1" />
-                {errors.telepon}
-              </p>
-            )}
-          </div>
+
 
           {/* Role */}
           <div>
@@ -243,8 +251,8 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
               Status
             </label>
             <select
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
+              value={formData.isActive ? 'aktif' : 'nonaktif'}
+              onChange={(e) => handleInputChange('isActive', e.target.value === 'aktif' ? 'true' : 'false')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="aktif">Aktif</option>

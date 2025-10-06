@@ -8,7 +8,6 @@ import {
   X,
   User,
   Car,
-  LogOut
 } from 'lucide-react';
 
 interface MenuItem {
@@ -116,18 +115,8 @@ export default function Sidebar({ isOpen, onToggle, currentPage, onPageChange, u
           ))}
         </nav>
 
-        {/* Logout Button */}
+        {/* yee */}
         <div className="p-4 border-t border-gray-100">
-          <button
-            onClick={() => {
-              localStorage.removeItem('isAuthenticated');
-              window.location.href = '/login';
-            }}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors"
-          >
-            <LogOut size={20} />
-            <span className="font-medium">Logout</span>
-          </button>
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl mt-4">
             <p className="text-sm text-gray-600 text-center">
               © 2025 SIM Keliling
