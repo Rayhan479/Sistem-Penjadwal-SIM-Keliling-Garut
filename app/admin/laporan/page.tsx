@@ -1,15 +1,11 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Plus,
-  Edit,
-  Trash2,
   MapPin,
   FileText,
   FileDown,
   Filter,
 } from "lucide-react";
-import ReportModal from "@/app/admin/laporan/modal/page";
 import * as XLSX from "xlsx";
 
 interface Report {
@@ -31,35 +27,14 @@ interface ApiReport {
 export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingReport, setEditingReport] = useState<Report | null>(null);
+
   const [filterPeriod, setFilterPeriod] = useState<
     "all" | "weekly" | "monthly"
   >("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const handleAddReport = () => {
-    setEditingReport(null);
-    setIsModalOpen(true);
-  };
 
-  const handleEdit = (id: number) => {
-    const report = reports.find((r) => r.id === id);
-    if (report) {
-      setEditingReport(report);
-      setIsModalOpen(true);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus laporan ini?")) {
-      try {
-        await fetch(`/api/laporan/${id}`, { method: "DELETE" });
-        fetchReports();
-      } catch (error) {
-        console.error("Error deleting report:", error);
-      }
-    }
-  };
 
   const fetchReports = useCallback(async () => {
     try {
@@ -110,6 +85,7 @@ export default function ReportPage() {
   const handleFilterChange = (period: "all" | "weekly" | "monthly") => {
     setFilterPeriod(period);
     applyFilter(reports, period);
+    setCurrentPage(1);
   };
 
   const handleDownloadExcel = () => {
@@ -147,31 +123,7 @@ export default function ReportPage() {
     XLSX.writeFile(workbook, fileName);
   };
 
-  const handleSaveReport = async (reportData: Omit<Report, "id">) => {
-    try {
-      if (editingReport) {
-        await fetch(`/api/laporan/${editingReport.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(reportData),
-        });
-      } else {
-        await fetch("/api/laporan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(reportData),
-        });
-      }
-      fetchReports();
-    } catch (error) {
-      console.error("Error saving report:", error);
-    }
-  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingReport(null);
-  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -227,23 +179,13 @@ export default function ReportPage() {
               Kelola Laporan layanan SIM Keliling
             </p>
           </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleAddReport}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
-            >
-              <Plus size={20} />
-              <span>Tambah Laporan</span>
-            </button>
-
-            <button
-              onClick={handleDownloadExcel}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
-            >
-              <FileDown size={20} />
-              <span>Unduh Laporan</span>
-            </button>
-          </div>
+          <button
+            onClick={handleDownloadExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-sm"
+          >
+            <FileDown size={20} />
+            <span>Unduh Laporan</span>
+          </button>
         </div>
       </div>
 
@@ -296,7 +238,7 @@ export default function ReportPage() {
             Daftar Laporan
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            Menampilkan {filteredReports.length} dari {reports.length} laporan
+            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredReports.length)} dari {filteredReports.length} laporan
           </p>
         </div>
 
@@ -316,13 +258,10 @@ export default function ReportPage() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredReports.map((report) => (
+              {filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((report) => (
                 <tr
                   key={report.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -349,38 +288,56 @@ export default function ReportPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(report.status)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(report.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(report.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {filteredReports.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredReports.length)} dari {filteredReports.length} laporan
+              </p>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                
+                {Array.from({ length: Math.ceil(filteredReports.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredReports.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredReports.length / itemsPerPage)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Report Modal */}
-      <ReportModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleSaveReport}
-        editingReport={editingReport}
-      />
+
     </div>
   );
 }

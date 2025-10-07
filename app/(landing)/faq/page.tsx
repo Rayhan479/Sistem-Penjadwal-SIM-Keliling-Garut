@@ -4,8 +4,8 @@ import {
   HelpCircle, 
   ChevronDown, 
   ChevronUp,
-  Phone,
-  MessageCircle,
+  // Phone,
+  // MessageCircle,
 } from 'lucide-react';
 
 interface FAQ {
@@ -34,8 +34,8 @@ export default function FAQPage() {
           const data: FAQ[] = await response.json();
           setFaqs(data);
           
-          // Extract unique categories
-          const uniqueCategories = ['Semua', ...new Set(data.map((faq: FAQ) => faq.category || 'Umum'))];
+          // Extract unique categories and sort them
+          const uniqueCategories = ['Semua', ...Array.from(new Set(data.map((faq: FAQ) => faq.category || 'Umum'))).sort()];
           setCategories(uniqueCategories);
         }
       } catch (error) {
@@ -157,7 +157,7 @@ export default function FAQPage() {
         </div>
 
         {/* Contact Section */}
-        <div className="mt-16 bg-blue-50 rounded-2xl p-8 text-center">
+        {/* <div className="mt-16 bg-blue-50 rounded-2xl p-8 text-center">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Tidak Menemukan Jawaban yang Anda Cari?
           </h3>
@@ -182,7 +182,7 @@ export default function FAQPage() {
               <span>WhatsApp</span>
             </a>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

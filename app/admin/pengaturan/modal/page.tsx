@@ -21,6 +21,8 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
     answer: '',
     category: 'Umum'
   });
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -37,6 +39,8 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
         category: 'Umum'
       });
     }
+    setIsAddingNewCategory(false);
+    setNewCategory('');
     setErrors({});
   }, [editingFAQ, isOpen]);
 
@@ -63,7 +67,11 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
     e.preventDefault();
     
     if (validateForm()) {
-      onSave(formData);
+      const finalData = {
+        ...formData,
+        category: isAddingNewCategory && newCategory ? newCategory : formData.category
+      };
+      onSave(finalData);
       onClose();
     }
   };
@@ -125,19 +133,50 @@ export default function FAQModal({ isOpen, onClose, onSave, editingFAQ }: FAQMod
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Kategori
             </label>
-            <select
-              value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.category ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="Umum">Umum</option>
-              <option value="Jadwal">Jadwal</option>
-              <option value="Persyaratan">Persyaratan</option>
-              <option value="Layanan">Layanan</option>
-              <option value="Teknis">Teknis</option>
-            </select>
+            {!isAddingNewCategory ? (
+              <div className="space-y-2">
+                <select
+                  value={formData.category}
+                  onChange={(e) => {
+                    if (e.target.value === 'ADD_NEW') {
+                      setIsAddingNewCategory(true);
+                    } else {
+                      handleInputChange('category', e.target.value);
+                    }
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.category ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="Umum">Umum</option>
+                  <option value="Jadwal">Jadwal</option>
+                  <option value="Persyaratan">Persyaratan</option>
+                  <option value="Layanan">Layanan</option>
+                  <option value="Teknis">Teknis</option>
+                  <option value="ADD_NEW">+ Tambah Kategori Baru</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Masukkan nama kategori baru"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingNewCategory(false);
+                    setNewCategory('');
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-800"
+                >
+                  ← Kembali ke pilihan kategori
+                </button>
+              </div>
+            )}
             {errors.category && (
               <p className="mt-1 text-sm text-red-600 flex items-center">
                 <AlertCircle size={14} className="mr-1" />

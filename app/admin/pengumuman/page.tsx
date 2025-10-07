@@ -25,6 +25,9 @@ export default function AnnouncementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] =
     useState<Announcement | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
 
   const handleAddAnnouncement = () => {
     setEditingAnnouncement(null);
@@ -44,6 +47,8 @@ export default function AnnouncementPage() {
       try {
         await fetch(`/api/pengumuman/${id}`, { method: "DELETE" });
         fetchAnnouncements();
+        setNotification({show: true, message: 'Pengumuman berhasil dihapus'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
       } catch (error) {
         console.error("Error deleting announcement:", error);
       }
@@ -84,14 +89,17 @@ export default function AnnouncementPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(announcementData),
         });
+        setNotification({show: true, message: 'Pengumuman berhasil diperbarui'});
       } else {
         await fetch("/api/pengumuman", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(announcementData),
         });
+        setNotification({show: true, message: 'Pengumuman berhasil ditambahkan'});
       }
       fetchAnnouncements();
+      setTimeout(() => setNotification({show: false, message: ''}), 3000);
     } catch (error) {
       console.error("Error saving announcement:", error);
     }
@@ -121,6 +129,16 @@ export default function AnnouncementPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fade-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
@@ -150,7 +168,7 @@ export default function AnnouncementPage() {
             Daftar Pengumuman
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            Total {announcements.length} pengumuman
+            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, announcements.length)} dari {announcements.length} pengumuman
           </p>
         </div>
 
@@ -179,7 +197,7 @@ export default function AnnouncementPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {announcements.map((announcement) => (
+              {announcements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((announcement) => (
                 <tr
                   key={announcement.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -250,6 +268,48 @@ export default function AnnouncementPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {announcements.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, announcements.length)} dari {announcements.length} pengumuman
+              </p>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                
+                {Array.from({ length: Math.ceil(announcements.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(announcements.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(announcements.length / itemsPerPage)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Announcement Modal */}

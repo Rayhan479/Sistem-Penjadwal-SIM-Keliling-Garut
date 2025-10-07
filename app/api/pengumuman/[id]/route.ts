@@ -3,13 +3,14 @@ import { PrismaClient } from '@/lib/generated/prisma';
 
 const prisma = new PrismaClient();
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { judul, tanggal, isi, gambar, category } = body;
 
     const pengumuman = await prisma.pengumuman.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: {
         judul,
         tanggal: new Date(tanggal),
@@ -26,10 +27,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await prisma.pengumuman.delete({
-      where: { id: parseInt(params.id) }
+      where: { id: parseInt(id) }
     });
 
     return NextResponse.json({ message: 'Pengumuman deleted successfully' });

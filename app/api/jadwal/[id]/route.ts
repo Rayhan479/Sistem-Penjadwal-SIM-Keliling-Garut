@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // GET - Fetch single jadwal by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     const jadwal = await prisma.jadwal.findUnique({
       where: { id }
     });
@@ -34,10 +35,11 @@ export async function GET(
 // PUT - Update jadwal by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     const body = await request.json();
     const { judul, tanggal, lokasi, alamatLengkap, latitude, longitude, gambar, waktuMulai, waktuSelesai, jumlahKuota, status } = body;
 
@@ -71,10 +73,11 @@ export async function PUT(
 // DELETE - Delete jadwal by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     
     await prisma.jadwal.delete({
       where: { id }

@@ -7,7 +7,7 @@ import {
   Shield, 
   Award,
   Star,
-  MessageCircle,
+  // MessageCircle,
   Target,
   Heart,
   Zap
@@ -244,7 +244,7 @@ export default function AboutPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="py-16 bg-blue-600 text-white">
+      {/* <div className="py-16 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Siap Mengurus SIM Anda?</h2>
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
@@ -267,7 +267,7 @@ export default function AboutPage() {
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

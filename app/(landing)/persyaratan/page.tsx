@@ -8,7 +8,7 @@ import {
   Clock,
   Users,
   Car,
-  MessageCircle,
+  // MessageCircle,
   Eye,
   Camera,
   MapPin,
@@ -250,7 +250,7 @@ export default function RequirementsPage() {
               onClick={() => setActiveTab('persyaratan')}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'persyaratan'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-[#2622FF] text-[#2622FF]'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -260,7 +260,7 @@ export default function RequirementsPage() {
               onClick={() => setActiveTab('prosedur')}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'prosedur'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-[#2622FF] text-[#2622FF]'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -270,7 +270,7 @@ export default function RequirementsPage() {
               onClick={() => setActiveTab('biaya')}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'biaya'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-[#2622FF] text-[#2622FF]'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -305,7 +305,7 @@ export default function RequirementsPage() {
                   <ul className="space-y-2 mb-4">
                     {requirement.items.map((item, index) => (
                       <li key={index} className="flex items-start">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                        <div className="w-2 h-2 bg-[#2622FF] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                         <span className="text-gray-700">{item}</span>
                       </li>
                     ))}
@@ -388,22 +388,22 @@ export default function RequirementsPage() {
 
             {/* Process Timeline */}
             <div className="bg-blue-50 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-blue-800 mb-4 flex items-center">
+              <h3 className="text-xl font-semibold text-[#2622FF] mb-4 flex items-center">
                 <Clock className="mr-3" size={24} />
                 Estimasi Waktu Proses
               </h3>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-2">5-10 menit</div>
-                  <div className="text-sm text-blue-700">Verifikasi Dokumen</div>
+                  <div className="text-2xl font-bold text-[#2622FF] mb-2">5-10 menit</div>
+                  <div className="text-sm text-#2622FF">Verifikasi Dokumen</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-2">10-15 menit</div>
-                  <div className="text-sm text-blue-700">Tes Kesehatan & Foto</div>
+                  <div className="text-2xl font-bold text-[#2622FF] mb-2">10-15 menit</div>
+                  <div className="text-sm text-#2622FF">Tes Kesehatan & Foto</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-2">15-20 menit</div>
-                  <div className="text-sm text-blue-700">Pencetakan SIM</div>
+                  <div className="text-2xl font-bold text-[#2622FF] mb-2">15-20 menit</div>
+                  <div className="text-sm text-#2622FF">Pencetakan SIM</div>
                 </div>
               </div>
             </div>
@@ -434,7 +434,7 @@ export default function RequirementsPage() {
                   <p className="text-gray-600 text-sm mb-4">
                     {sim.description}
                   </p>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-#2622FF">
                     {loadingPrices ? (
                       <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                     ) : (
@@ -500,14 +500,14 @@ export default function RequirementsPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 text-white py-16">
+      {/* <div className="bg-blue-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Siap Mengurus SIM Anda?</h2>
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
             Pastikan semua persyaratan sudah lengkap dan cek jadwal SIM Keliling terdekat
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <button className="bg-white text-[#2622FF] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               Lihat Jadwal
             </button>
             <a
@@ -521,7 +521,7 @@ export default function RequirementsPage() {
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

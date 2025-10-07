@@ -3,13 +3,45 @@ import { PrismaClient } from '@/lib/generated/prisma';
 
 const prisma = new PrismaClient();
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+async function checkAndUpdateJadwalStatus(tanggal: Date, lokasi: string) {
+  const jadwal = await prisma.jadwal.findFirst({
+    where: {
+      tanggal: tanggal,
+      lokasi: lokasi
+    }
+  });
+
+  if (jadwal) {
+    const totalDilayani = await prisma.laporan.aggregate({
+      where: {
+        tanggal: tanggal,
+        lokasi: lokasi,
+        status: 'selesai'
+      },
+      _sum: {
+        jumlah: true
+      }
+    });
+
+    const total = totalDilayani._sum.jumlah || 0;
+    
+    if (total >= jadwal.jumlahKuota && jadwal.status !== 'selesai') {
+      await prisma.jadwal.update({
+        where: { id: jadwal.id },
+        data: { status: 'selesai' }
+      });
+    }
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { tanggal, lokasi, jumlah, status } = body;
 
     const laporan = await prisma.laporan.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: {
         tanggal: new Date(tanggal),
         lokasi,
@@ -18,17 +50,28 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
     });
 
+    await checkAndUpdateJadwalStatus(new Date(tanggal), lokasi);
+
     return NextResponse.json(laporan);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update laporan' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await prisma.laporan.delete({
-      where: { id: parseInt(params.id) }
+    const { id } = await params;
+    const laporan = await prisma.laporan.findUnique({
+      where: { id: parseInt(id) }
     });
+
+    await prisma.laporan.delete({
+      where: { id: parseInt(id) }
+    });
+
+    if (laporan) {
+      await checkAndUpdateJadwalStatus(laporan.tanggal, laporan.lokasi);
+    }
 
     return NextResponse.json({ message: 'Laporan deleted successfully' });
   } catch (error) {

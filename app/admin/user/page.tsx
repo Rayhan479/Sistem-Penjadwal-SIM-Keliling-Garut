@@ -25,6 +25,9 @@ export default function UserManagementPage() {
   const [selectedStatus, setSelectedStatus] = useState('Semua Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
 
   useEffect(() => {
     fetchUsers();
@@ -64,6 +67,8 @@ export default function UserManagementPage() {
         const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
         if (response.ok) {
           fetchUsers();
+          setNotification({show: true, message: 'User berhasil dihapus'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       } catch (error) {
         console.error('Error deleting user:', error);
@@ -99,6 +104,8 @@ export default function UserManagementPage() {
         });
         if (response.ok) {
           fetchUsers();
+          setNotification({show: true, message: 'User berhasil diperbarui'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       } else {
         const response = await fetch('/api/users', {
@@ -108,6 +115,8 @@ export default function UserManagementPage() {
         });
         if (response.ok) {
           fetchUsers();
+          setNotification({show: true, message: 'User berhasil ditambahkan'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       }
     } catch (error) {
@@ -131,6 +140,10 @@ export default function UserManagementPage() {
     
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRole, selectedStatus]);
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
@@ -171,6 +184,16 @@ export default function UserManagementPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fade-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
@@ -241,7 +264,7 @@ export default function UserManagementPage() {
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800">Daftar User</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Menampilkan {filteredUsers.length} dari {users.length} user
+            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredUsers.length)} dari {filteredUsers.length} user
           </p>
         </div>
         
@@ -290,7 +313,7 @@ export default function UserManagementPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -345,6 +368,48 @@ export default function UserManagementPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {filteredUsers.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredUsers.length)} dari {filteredUsers.length} user
+              </p>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                
+                {Array.from({ length: Math.ceil(filteredUsers.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredUsers.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredUsers.length / itemsPerPage)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Modal */}

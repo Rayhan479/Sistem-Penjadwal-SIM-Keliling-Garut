@@ -31,11 +31,16 @@ export async function POST() {
 
       let newStatus = schedule.status;
       
+      // Skip if already selesai (could be from quota check)
+      if (schedule.status === 'selesai') {
+        continue;
+      }
+      
       if (now < startTime) {
         newStatus = 'terjadwal';
       } else if (now >= startTime && now <= endTime) {
         newStatus = 'berlangsung';
-      } else if (now > endTime && schedule.status !== 'selesai') {
+      } else if (now > endTime) {
         newStatus = 'selesai';
         
         laporanToCreate.push({

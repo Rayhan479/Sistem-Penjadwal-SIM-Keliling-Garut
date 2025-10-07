@@ -104,14 +104,14 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-blue-600 text-white">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#2622FF] text-white">
           <div className="flex items-center space-x-3">
             <Search size={24} />
             <h2 className="text-xl font-semibold">Hasil Pencarian Jadwal</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-blue-900 rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -120,22 +120,22 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
         {/* Search Filters Summary */}
         <div className="p-6 bg-gray-50 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-            <Filter size={20} className="mr-2 text-blue-600" />
+            <Filter size={20} className="mr-2 text-[#2622FF]" />
             Filter Pencarian
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center">
-              <Calendar size={16} className="mr-2 text-blue-600" />
+              <Calendar size={16} className="mr-2 text-[#2622FF]" />
               <span className="font-medium">Tanggal: </span>
               <span className="ml-1">{searchFilters.date || 'Semua Tanggal'}</span>
             </div>
             <div className="flex items-center">
-              <Clock size={16} className="mr-2 text-blue-600" />
+              <Clock size={16} className="mr-2 text-[#2622FF]" />
               <span className="font-medium">Status: </span>
               <span className="ml-1">{searchFilters.status || 'Semua Status'}</span>
             </div>
             <div className="flex items-center">
-              <MapPin size={16} className="mr-2 text-blue-600" />
+              <MapPin size={16} className="mr-2 text-[#2622FF]" />
               <span className="font-medium">Lokasi: </span>
               <span className="ml-1">{searchFilters.location || 'Semua Lokasi'}</span>
             </div>
@@ -146,7 +146,7 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
         <div className="p-6 overflow-y-auto max-h-96">
           {isSearching ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2622FF] mx-auto mb-4"></div>
               <p className="text-gray-600">Mencari jadwal...</p>
             </div>
           ) : (
@@ -190,22 +190,22 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
                         
                         <div className="space-y-2 text-gray-600 mb-4">
                           <div className="flex items-center">
-                            <Calendar size={14} className="mr-2 text-blue-600" />
+                            <Calendar size={14} className="mr-2 text-[#2622FF]" />
                             <span className="text-sm">{formatDate(schedule.tanggal)}</span>
                           </div>
                           <div className="flex items-center">
-                            <Clock size={14} className="mr-2 text-blue-600" />
+                            <Clock size={14} className="mr-2 text-[#2622FF]" />
                             <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
                           </div>
                           <div className="flex items-center">
-                            <MapPin size={14} className="mr-2 text-blue-600" />
+                            <MapPin size={14} className="mr-2 text-[#2622FF]" />
                             <span className="text-sm">{schedule.lokasi}</span>
                           </div>
                         </div>
                         
                         <button 
                           onClick={() => onViewDetail(schedule)}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors text-sm"
+                          className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-2 rounded-lg font-medium transition-colors text-sm"
                         >
                           Lihat Detail Lokasi
                         </button>
@@ -221,7 +221,7 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
         {/* Modal Footer */}
         <div className="flex justify-between items-center p-6 border-t border-gray-100 bg-gray-50">
           <div className="text-sm text-gray-600">
-            Butuh bantuan? <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Hubungi kami</a>
+            Butuh bantuan? <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="text-[#2622FF] hover:text-blue-950">Hubungi kami</a>
           </div>
           <div className="flex space-x-3">
             <button
@@ -232,7 +232,7 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
             </button>
             <a
               href="/jadwal"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="px-4 py-2 bg-[#2622FF] hover:bg-blue-900 text-white rounded-lg font-medium transition-colors"
             >
               Lihat Semua Jadwal
             </a>

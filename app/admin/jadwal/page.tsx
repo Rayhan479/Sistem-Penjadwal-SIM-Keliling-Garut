@@ -8,6 +8,7 @@ import {
   Clock,
   Calendar,
   Image as ImageIcon,
+  UserCheck,
 } from "lucide-react";
 import ScheduleModal from "@/app/admin/jadwal/modal/page";
 import Image from "next/image";
@@ -33,6 +34,14 @@ export default function SchedulePage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [isServedModalOpen, setIsServedModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
+  const [jumlahDilayani, setJumlahDilayani] = useState('');
+  const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
+  const [sisaKuota, setSisaKuota] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [sortOrder, setSortOrder] = useState<'terbaru' | 'terlama'>('terbaru');
 
   const updateScheduleStatuses = useCallback(async () => {
     try {
@@ -53,7 +62,15 @@ export default function SchedulePage() {
     try {
       const response = await fetch("/api/jadwal");
       const data = await response.json();
-      setSchedules(data);
+      
+      // Sort based on sortOrder
+      const sortedData = [...data].sort((a, b) => {
+        const dateA = new Date(a.tanggal).getTime();
+        const dateB = new Date(b.tanggal).getTime();
+        return sortOrder === 'terbaru' ? dateB - dateA : dateA - dateB;
+      });
+      
+      setSchedules(sortedData);
 
       // Update statuses immediately after fetching
       setTimeout(() => updateScheduleStatuses(), 100);
@@ -62,7 +79,7 @@ export default function SchedulePage() {
     } finally {
       setLoading(false);
     }
-  }, [updateScheduleStatuses]);
+  }, [updateScheduleStatuses, sortOrder]);
 
   useEffect(() => {
     fetchSchedules();
@@ -113,6 +130,7 @@ export default function SchedulePage() {
             schedule.id === editingSchedule.id ? updatedSchedule : schedule
           )
         );
+        setNotification({show: true, message: 'Jadwal berhasil diperbarui'});
       } else {
         const response = await fetch("/api/jadwal", {
           method: "POST",
@@ -121,7 +139,9 @@ export default function SchedulePage() {
         });
         const newSchedule = await response.json();
         setSchedules((prev) => [...prev, newSchedule]);
+        setNotification({show: true, message: 'Jadwal berhasil ditambahkan'});
       }
+      setTimeout(() => setNotification({show: false, message: ''}), 3000);
     } catch (error) {
       console.error("Error saving schedule:", error);
     }
@@ -130,6 +150,61 @@ export default function SchedulePage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingSchedule(null);
+  };
+
+  const handleAddServed = async (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setJumlahDilayani('');
+    
+    // Fetch sisa kuota
+    try {
+      const scheduleTanggal = new Date(schedule.tanggal).toISOString().split('T')[0];
+      
+      const response = await fetch('/api/laporan');
+      const laporan = await response.json();
+      const totalDilayani = laporan
+        .filter((l: any) => {
+          const laporanTanggal = new Date(l.tanggal).toISOString().split('T')[0];
+          return laporanTanggal === scheduleTanggal &&
+            l.lokasi === schedule.lokasi &&
+            l.status === 'selesai';
+        })
+        .reduce((sum: number, l: any) => sum + l.jumlah, 0);
+      
+      const sisa = schedule.jumlahKuota - totalDilayani;
+      setSisaKuota(sisa > 0 ? sisa : 0);
+    } catch (error) {
+      console.error('Error fetching sisa kuota:', error);
+      setSisaKuota(schedule.jumlahKuota);
+    }
+    
+    setIsServedModalOpen(true);
+  };
+
+  const handleSaveServed = async () => {
+    if (!selectedSchedule || !jumlahDilayani) return;
+
+    try {
+      const response = await fetch('/api/laporan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tanggal: selectedSchedule.tanggal,
+          lokasi: selectedSchedule.lokasi,
+          jumlah: parseInt(jumlahDilayani),
+          status: 'selesai'
+        })
+      });
+
+      if (response.ok) {
+        alert('Jumlah dilayani berhasil ditambahkan');
+        setIsServedModalOpen(false);
+        fetchSchedules(); // Refresh to get updated status
+      }
+    } catch (error) {
+      console.error('Error saving served count:', error);
+      alert('Gagal menyimpan data');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -194,6 +269,16 @@ export default function SchedulePage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fade-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
@@ -219,10 +304,28 @@ export default function SchedulePage() {
       {/* Schedule Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800">Daftar Jadwal</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Total {schedules.length} jadwal
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Daftar Jadwal</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Total {schedules.length} jadwal
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Urutkan:</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value as 'terbaru' | 'terlama');
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="terbaru">Terbaru</option>
+                <option value="terlama">Terlama</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -259,7 +362,7 @@ export default function SchedulePage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {schedules.map((schedule) => (
+              {schedules.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((schedule) => (
                 <tr
                   key={schedule.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -333,6 +436,15 @@ export default function SchedulePage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
+                      {schedule.status === 'berlangsung' && (
+                        <button
+                          onClick={() => handleAddServed(schedule)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Tambah Jumlah Dilayani"
+                        >
+                          <UserCheck size={16} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleEdit(schedule.id)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -354,6 +466,48 @@ export default function SchedulePage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {schedules.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, schedules.length)} dari {schedules.length} jadwal
+              </p>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                
+                {Array.from({ length: Math.ceil(schedules.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(schedules.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(schedules.length / itemsPerPage)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Schedule Modal */}
@@ -363,6 +517,81 @@ export default function SchedulePage() {
         onSave={handleSaveSchedule}
         editingSchedule={editingSchedule}
       />
+
+      {/* Served Count Modal */}
+      {isServedModalOpen && selectedSchedule && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Tambah Jumlah Dilayani
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Jadwal
+                </label>
+                <p className="text-sm text-gray-600">{selectedSchedule.judul}</p>
+                <p className="text-xs text-gray-500">
+                  {formatDate(selectedSchedule.tanggal)} - {selectedSchedule.lokasi}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kuota Maksimal
+                </label>
+                <p className="text-sm font-semibold text-blue-600">
+                  {selectedSchedule.jumlahKuota} orang
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kuota Tersisa
+                </label>
+                <p className="text-sm font-semibold text-green-600">
+                  {sisaKuota} orang
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Jumlah yang Dilayani
+                </label>
+                <input
+                  type="number"
+                  value={jumlahDilayani}
+                  onChange={(e) => setJumlahDilayani(e.target.value)}
+                  placeholder="Masukkan jumlah"
+                  min="1"
+                  max={sisaKuota}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Maksimal: {sisaKuota} orang
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setIsServedModalOpen(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveServed}
+                disabled={!jumlahDilayani || parseInt(jumlahDilayani) <= 0 || parseInt(jumlahDilayani) > sisaKuota}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

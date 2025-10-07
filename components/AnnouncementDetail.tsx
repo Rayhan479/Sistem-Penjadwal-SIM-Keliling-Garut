@@ -108,7 +108,7 @@ export default function AnnouncementDetail({ article, onBack, relatedArticles = 
         <div className="container mx-auto px-4 py-4">
           <button
             onClick={onBack}
-            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+            className="flex items-center text-[#2622FF] hover:text-blue-900 transition-colors"
           >
             <ArrowLeft size={20} className="mr-2" />
             <span>Kembali ke Pengumuman</span>
@@ -150,7 +150,7 @@ export default function AnnouncementDetail({ article, onBack, relatedArticles = 
             <div className="flex items-center space-x-4 pb-6 border-b border-gray-200">
               <button
                 onClick={handleShare}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-[#2622FF] hover:bg-blue-900 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 <Share2 size={16} />
                 <span>Bagikan</span>
@@ -188,7 +188,7 @@ export default function AnnouncementDetail({ article, onBack, relatedArticles = 
             <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href="tel:(0262)1500000"
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-2 bg-[#2622FF] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors"
               >
                 <Phone size={16} />
                 <span>(0262) 1500-000</span>

@@ -5,14 +5,15 @@ import { getSession } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
     if (!session || session.role !== 'super_admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     const { username, email, name, role, isActive, password } = await request.json();
 
     const updateData: any = { username, email, name, role, isActive };
@@ -33,14 +34,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
     if (!session || session.role !== 'super_admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
 
     await prisma.user.delete({
       where: { id }

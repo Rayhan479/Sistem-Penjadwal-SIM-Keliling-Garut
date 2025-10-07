@@ -124,7 +124,7 @@ export default function ScheduleModal({ isOpen, onClose, onSave, editingSchedule
         submitData.gambar = URL.createObjectURL(selectedFile);
       }
       onSave(submitData);
-      onClose();
+      setTimeout(() => onClose(), 100);
     }
   };
 

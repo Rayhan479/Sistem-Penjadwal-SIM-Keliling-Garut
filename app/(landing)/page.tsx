@@ -462,7 +462,7 @@ export default function HomePage() {
               
               <button 
                 onClick={handleSearch}
-                className="w-full bg-[#2622FF] text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full bg-[#2622FF] text-white py-3 rounded-lg hover:bg-blue-900 transition-colors font-medium"
               >
                 Cari
               </button>

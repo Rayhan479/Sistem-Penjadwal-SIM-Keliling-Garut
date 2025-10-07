@@ -87,6 +87,7 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
 
   React.useEffect(() => {
     fetch("/api/auth/me")
@@ -176,6 +177,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         const updatedContact = await response.json();
         setContactInfo(updatedContact);
         setIsContactEditing(false);
+        setNotification({show: true, message: 'Informasi kontak berhasil diperbarui'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
       }
     } catch (error) {
       console.error("Error saving contact info:", error);
@@ -211,6 +214,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         const updatedFees = await response.json();
         setFees(updatedFees);
         setIsFeeEditing(false);
+        setNotification({show: true, message: 'Biaya SIM berhasil diperbarui'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
       }
     } catch (error) {
       console.error("Error saving fees:", error);
@@ -248,6 +253,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         });
         if (response.ok) {
           setFAQs((prev) => prev.filter((faq) => faq.id !== id));
+          setNotification({show: true, message: 'FAQ berhasil dihapus'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       } catch (error) {
         console.error("Error deleting FAQ:", error);
@@ -268,6 +275,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
           setFAQs((prev) =>
             prev.map((faq) => (faq.id === editingFAQ.id ? updatedFaq : faq))
           );
+          setNotification({show: true, message: 'FAQ berhasil diperbarui'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       } else {
         const response = await fetch("/api/faq", {
@@ -278,6 +287,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         if (response.ok) {
           const newFaq = await response.json();
           setFAQs((prev) => [newFaq, ...prev]);
+          setNotification({show: true, message: 'FAQ berhasil ditambahkan'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
         }
       }
     } catch (error) {
@@ -307,9 +318,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         const updatedProfile = await response.json();
         setUserProfile(updatedProfile.user);
         setIsProfileEditing(false);
-        alert("Profil berhasil diperbarui");
-      } else {
-        alert("Gagal memperbarui profil");
+        setNotification({show: true, message: 'Profil berhasil diperbarui'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
       }
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -356,7 +366,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
           confirmPassword: "",
         });
         setIsChangingPassword(false);
-        alert("Password berhasil diubah");
+        setNotification({show: true, message: 'Password berhasil diubah'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
       } else {
         const data = await response.json();
         alert(data.error || "Gagal mengubah password");
@@ -374,6 +385,16 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fade-in">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center">
