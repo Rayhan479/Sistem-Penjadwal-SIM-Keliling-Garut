@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Users, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Search, ArrowUpDown } from 'lucide-react';
 import UserModal from '@/app/admin/user/modal/page';
 
 interface User {
@@ -28,6 +28,8 @@ export default function UserManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
+  const [sortField, setSortField] = useState<keyof User | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetchUsers();
@@ -129,6 +131,15 @@ export default function UserManagementPage() {
     setEditingUser(null);
   };
 
+  const handleSort = (field: keyof User) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -139,6 +150,20 @@ export default function UserManagementPage() {
                          (selectedStatus === 'Aktif' ? user.isActive : !user.isActive);
     
     return matchesSearch && matchesRole && matchesStatus;
+  }).sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
   });
 
   useEffect(() => {
@@ -196,6 +221,12 @@ export default function UserManagementPage() {
 
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        ) : (
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center">
@@ -212,6 +243,7 @@ export default function UserManagementPage() {
             <span>Tambah User</span>
           </button>
         </div>
+        )}
       </div>
 
       
@@ -273,19 +305,34 @@ export default function UserManagementPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  <button onClick={() => handleSort('name')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>User</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kontak
+                  <button onClick={() => handleSort('email')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Kontak</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  <button onClick={() => handleSort('role')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Role</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  <button onClick={() => handleSort('isActive')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Status</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tanggal Dibuat
+                  <button onClick={() => handleSort('createdAt')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Tanggal Dibuat</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Aksi
@@ -295,7 +342,7 @@ export default function UserManagementPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={9} className="px-6 py-12 text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Memuat data...</p>
                   </td>

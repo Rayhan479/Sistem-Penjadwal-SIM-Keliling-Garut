@@ -28,6 +28,7 @@ export default function MainContent() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([
     {
       title: "Total Layanan",
@@ -118,6 +119,8 @@ export default function MainContent() {
         setRecentReports(sortedReports);
       } catch (error) {
         console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -167,7 +170,20 @@ export default function MainContent() {
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+        {loading ? (
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+              </div>
+            </div>
+          ))
+        ) : (
+        stats.map((stat, index) => (
           <div
             key={index}
             className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-shadow"
@@ -186,7 +202,8 @@ export default function MainContent() {
               </div>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Main Dashboard Content */}
@@ -217,7 +234,21 @@ export default function MainContent() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentReports.map((report, index) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Memuat data...</p>
+                    </td>
+                  </tr>
+                ) : recentReports.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                      Belum ada laporan
+                    </td>
+                  </tr>
+                ) : (
+                recentReports.map((report, index) => (
                   <tr
                     key={report.id || index}
                     className="hover:bg-gray-50 transition-colors"
@@ -255,7 +286,8 @@ export default function MainContent() {
                       </span>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>

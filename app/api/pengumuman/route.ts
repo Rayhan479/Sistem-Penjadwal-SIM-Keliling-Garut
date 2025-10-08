@@ -6,19 +6,20 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const pengumuman = await prisma.pengumuman.findMany({
-      select: {
-        id: true,
-        judul: true,
-        isi: true,
-        tanggal: true,
-        gambar: true,
-        category: true,
-        createdAt: true,
-        updatedAt: true
+      include: {
+        author: {
+          select: {
+            name: true
+          }
+        }
       },
       orderBy: { tanggal: 'desc' }
     });
-    return NextResponse.json(pengumuman);
+    const pengumumanWithAuthor = pengumuman.map(item => ({
+      ...item,
+      author: item.author?.name || 'Admin SIM Keliling'
+    }));
+    return NextResponse.json(pengumumanWithAuthor);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch pengumuman' }, { status: 500 });
   }
@@ -27,7 +28,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { judul, tanggal, isi, gambar, category } = body;
+    const { judul, tanggal, isi, gambar, category, authorId } = body;
 
     const pengumuman = await prisma.pengumuman.create({
       data: {
@@ -36,9 +37,17 @@ export async function POST(request: NextRequest) {
         isi,
         gambar: gambar || null,
         category: category || 'Pengumuman',
+        authorId: authorId || null,
         createdAt: new Date(),
         updatedAt: new Date()
-      } 
+      },
+      include: {
+        author: {
+          select: {
+            name: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(pengumuman, { status: 201 });

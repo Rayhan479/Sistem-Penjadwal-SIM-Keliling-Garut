@@ -7,6 +7,7 @@ import {
   FileText,
   Calendar,
   Image as ImageIcon,
+  ArrowUpDown,
 } from "lucide-react";
 import Image from "next/image";
 import AnnouncementModal from "@/app/admin/pengumuman/modal/page";
@@ -28,6 +29,18 @@ export default function AnnouncementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
+  const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState<keyof Announcement | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (field: keyof Announcement) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const handleAddAnnouncement = () => {
     setEditingAnnouncement(null);
@@ -76,6 +89,8 @@ export default function AnnouncementPage() {
     } catch (error) {
       console.error("Error fetching announcements:", error);
       setAnnouncements([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,18 +98,28 @@ export default function AnnouncementPage() {
     announcementData: Omit<Announcement, "id">
   ) => {
     try {
+      // Get current user
+      const userResponse = await fetch('/api/auth/me');
+      let authorId = null;
+      if (userResponse.ok) {
+        const data = await userResponse.json();
+        authorId = data.user?.id;
+      }
+
+      const dataWithAuthor = { ...announcementData, authorId };
+
       if (editingAnnouncement) {
         await fetch(`/api/pengumuman/${editingAnnouncement.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(announcementData),
+          body: JSON.stringify(dataWithAuthor),
         });
         setNotification({show: true, message: 'Pengumuman berhasil diperbarui'});
       } else {
         await fetch("/api/pengumuman", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(announcementData),
+          body: JSON.stringify(dataWithAuthor),
         });
         setNotification({show: true, message: 'Pengumuman berhasil ditambahkan'});
       }
@@ -127,6 +152,25 @@ export default function AnnouncementPage() {
     return plainText.substring(0, maxLength) + "...";
   };
 
+  const sortedAnnouncements = [...announcements].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+    
+    if (aValue === undefined) return 1;
+    if (bValue === undefined) return -1;
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Notification */}
@@ -141,6 +185,12 @@ export default function AnnouncementPage() {
 
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        ) : (
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center">
@@ -159,6 +209,7 @@ export default function AnnouncementPage() {
             <span>Tambah Pengumuman</span>
           </button>
         </div>
+        )}
       </div>
 
       {/* Announcements Table */}
@@ -168,7 +219,7 @@ export default function AnnouncementPage() {
             Daftar Pengumuman
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, announcements.length)} dari {announcements.length} pengumuman
+            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, sortedAnnouncements.length)} dari {sortedAnnouncements.length} pengumuman
           </p>
         </div>
 
@@ -177,13 +228,22 @@ export default function AnnouncementPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Judul
+                  <button onClick={() => handleSort('judul')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Judul</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tanggal
+                  <button onClick={() => handleSort('tanggal')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Tanggal</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kategori
+                  <button onClick={() => handleSort('category')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Kategori</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Gambar
@@ -197,7 +257,15 @@ export default function AnnouncementPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {announcements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((announcement) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Memuat data...</p>
+                  </td>
+                </tr>
+              ) : (
+                sortedAnnouncements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((announcement) => (
                 <tr
                   key={announcement.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -264,17 +332,19 @@ export default function AnnouncementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
+              
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        {announcements.length > itemsPerPage && (
+        {sortedAnnouncements.length > itemsPerPage && (
           <div className="p-6 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, announcements.length)} dari {announcements.length} pengumuman
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedAnnouncements.length)} dari {sortedAnnouncements.length} pengumuman
               </p>
               <div className="flex items-center space-x-2">
                 <button
@@ -285,7 +355,7 @@ export default function AnnouncementPage() {
                   Sebelumnya
                 </button>
                 
-                {Array.from({ length: Math.ceil(announcements.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: Math.ceil(sortedAnnouncements.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
@@ -300,8 +370,8 @@ export default function AnnouncementPage() {
                 ))}
                 
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(announcements.length / itemsPerPage), prev + 1))}
-                  disabled={currentPage === Math.ceil(announcements.length / itemsPerPage)}
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(sortedAnnouncements.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(sortedAnnouncements.length / itemsPerPage)}
                   className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Selanjutnya

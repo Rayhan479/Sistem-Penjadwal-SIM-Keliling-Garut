@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, Calendar, Clock, MapPin, Navigation } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Calendar, Clock, MapPin, Navigation, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
@@ -19,6 +19,8 @@ interface Schedule {
   waktuSelesai: string;
   status: string;
   gambar?: string;
+  jumlahKuota?: number;
+  sisaKuota?: number;
 }
 
 interface LocationDetailModalProps {
@@ -28,6 +30,8 @@ interface LocationDetailModalProps {
 }
 
 export default function LocationDetailModal({ isOpen, onClose, schedule }: LocationDetailModalProps) {
+  const [quotaData, setQuotaData] = useState<{ sisaKuota: number; jumlahKuota: number } | null>(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       import('leaflet').then((L) => {
@@ -40,6 +44,23 @@ export default function LocationDetailModal({ isOpen, onClose, schedule }: Locat
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (isOpen && schedule) {
+      fetch('/api/jadwal/with-quota')
+        .then(res => res.json())
+        .then(data => {
+          const scheduleData = data.find((item: Schedule) => item.id === schedule.id);
+          if (scheduleData) {
+            setQuotaData({
+              sisaKuota: scheduleData.sisaKuota ?? scheduleData.jumlahKuota ?? 0,
+              jumlahKuota: scheduleData.jumlahKuota ?? 0
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching quota:', err));
+    }
+  }, [isOpen, schedule]);
 
   if (!isOpen || !schedule) return null;
 
@@ -165,6 +186,18 @@ export default function LocationDetailModal({ isOpen, onClose, schedule }: Locat
                         <span>{schedule.waktuMulai} - {schedule.waktuSelesai} WIB</span>
                       </div>
                     </div>
+                    {quotaData && (
+                      <div className="flex items-center text-gray-700">
+                        <Users size={16} className="mr-3 text-blue-600" />
+                        <div>
+                          <span className="font-medium">Kuota: </span>
+                          <span className={quotaData.sisaKuota > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                            {quotaData.sisaKuota} / {quotaData.jumlahKuota}
+                          </span>
+                          <span className="text-sm ml-1">({quotaData.sisaKuota > 0 ? 'Tersedia' : 'Habis'})</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

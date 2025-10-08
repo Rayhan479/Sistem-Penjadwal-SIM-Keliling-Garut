@@ -7,7 +7,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const body = await request.json();
-    const { judul, tanggal, isi, gambar, category } = body;
+    const { judul, tanggal, isi, gambar, category, authorId } = body;
 
     const pengumuman = await prisma.pengumuman.update({
       where: { id: parseInt(id) },
@@ -17,8 +17,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         isi,
         gambar: gambar || null,
         category: category || 'Pengumuman',
+        authorId: authorId || null,
         updatedAt: new Date()
-      } 
+      },
+      include: {
+        author: {
+          select: {
+            name: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(pengumuman);

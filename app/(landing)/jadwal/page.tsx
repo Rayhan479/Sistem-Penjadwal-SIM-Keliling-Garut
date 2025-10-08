@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Calendar, MapPin, Clock, Search, Filter, ChevronDown, Users } from 'lucide-react';
 import LocationDetailModal from '@/components/LocationDetailModal';
 
@@ -57,7 +58,7 @@ export default function LandingSchedulePage() {
         }));
         
         setScheduleData(formattedSchedules);
-        setFilteredSchedules(formattedSchedules);
+        setFilteredSchedules(sortByStatus(formattedSchedules));
         setLocations(['Semua Lokasi', ...locationsData]);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -95,6 +96,14 @@ export default function LandingSchedulePage() {
     );
   };
 
+  const sortByStatus = (schedules: Schedule[]) => {
+    const statusOrder = { berlangsung: 1, terjadwal: 2, selesai: 3, dibatalkan: 4 };
+    return schedules.sort((a, b) => 
+      (statusOrder[a.status as keyof typeof statusOrder] || 99) - 
+      (statusOrder[b.status as keyof typeof statusOrder] || 99)
+    );
+  };
+
   const handleFilter = () => {
     let filtered = scheduleData;
 
@@ -114,7 +123,7 @@ export default function LandingSchedulePage() {
       );
     }
 
-    setFilteredSchedules(filtered);
+    setFilteredSchedules(sortByStatus(filtered));
     setCurrentPage(1);
   };
 
@@ -122,7 +131,7 @@ export default function LandingSchedulePage() {
     setSelectedDate('');
     setSelectedStatus('Semua Status');
     setSelectedLocation('Semua Lokasi');
-    setFilteredSchedules(scheduleData);
+    setFilteredSchedules(sortByStatus([...scheduleData]));
     setCurrentPage(1);
   };
 
@@ -244,9 +253,25 @@ export default function LandingSchedulePage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Memuat jadwal...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                <div className="w-full h-48 bg-gray-200"></div>
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                  </div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                  </div>
+                  <div className="h-10 bg-gray-200 rounded w-full"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredSchedules.length === 0 ? (
           <div className="text-center py-12">
@@ -262,9 +287,11 @@ export default function LandingSchedulePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedSchedules.map((schedule) => (
               <div key={schedule.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <img 
+                <Image 
                   src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
                   alt={schedule.judul}
+                  width={400}
+                  height={192}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">

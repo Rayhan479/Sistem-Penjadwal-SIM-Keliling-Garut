@@ -39,6 +39,7 @@ interface JadwalItem {
   jumlahKuota: number;
   status: string;
   gambar?: string;
+  sisaKuota?: number;
 }
 
 interface PengumumanItem {
@@ -103,7 +104,7 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [upcomingRes, locationsRes, pengumumanRes] = await Promise.all([
-          fetch('/api/jadwal/upcoming'),
+          fetch('/api/jadwal/with-quota'),
           fetch('/api/jadwal/locations'),
           fetch('/api/pengumuman')
         ]);
@@ -112,8 +113,13 @@ export default function HomePage() {
         const locationsData = await locationsRes.json();
         const pengumumanData = await pengumumanRes.json();
         
-        setUpcomingSchedules(upcomingData);
-        console.log('Upcoming schedules count:', upcomingData.length);
+        // Filter only upcoming schedules (terjadwal) and take first 9
+        const filteredUpcoming = upcomingData
+          .filter((item: JadwalItem) => item.status === 'terjadwal')
+          .slice(0, 9);
+        
+        setUpcomingSchedules(filteredUpcoming);
+        console.log('Upcoming schedules count:', filteredUpcoming.length);
         setLocations(['Semua Lokasi', ...locationsData]);
         // Process pengumuman data to handle HTML content
         const processedPengumuman = pengumumanData.slice(0, 2).map((item: any) => ({
@@ -132,15 +138,16 @@ export default function HomePage() {
           if (relation.members) {
             const coordinates = relation.members
               .filter((member: BoundaryMember) => member.type === 'way' && member.geometry)
-              .map((member: BoundaryMember) => member.geometry!.map((point: { lat: number; lon: number }) => [point.lat, point.lon]));
+              .map((member: BoundaryMember) => member.geometry!.map((point: { lat: number; lon: number }) => [point.lon, point.lat]));
             
             if (coordinates.length > 0) {
               setGarutBoundary({
                 type: 'Feature',
                 geometry: {
-                  type: 'MultiPolygon',
-                  coordinates: [coordinates]
-                }
+                  type: 'Polygon',
+                  coordinates: coordinates
+                },
+                properties: {}
               });
             }
           }
@@ -173,6 +180,22 @@ export default function HomePage() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      terjadwal: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Terjadwal' },
+      berlangsung: { bg: 'bg-green-100', text: 'text-green-800', label: 'Berlangsung' },
+      selesai: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Selesai' },
+      dibatalkan: { bg: 'bg-red-100', text: 'text-red-800', label: 'Dibatalkan' }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig];
+    return (
+      <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${config.bg} ${config.text}`}>
+        {config.label}
+      </span>
+    );
   };
 
   const getRelativeTime = (updatedAt: string, content: string) => {
@@ -338,35 +361,43 @@ export default function HomePage() {
                           className="w-full h-48 object-cover"
                         />
                         <div className="p-6">
+                          <div className="flex items-center justify-between mb-3">
+                            {getStatusBadge(schedule.status)}
+                            {(schedule.sisaKuota ?? schedule.jumlahKuota) > 0 ? (
+                              <div className="flex items-center text-gray-600">
+                                <Users size={16} className="mr-1" />
+                                <span className="text-sm font-medium">{schedule.sisaKuota ?? schedule.jumlahKuota} Kuota Tersedia</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-red-600">
+                                <Users size={16} className="mr-1" />
+                                <span className="text-sm font-medium">Kuota Habis</span>
+                              </div>
+                            )}
+                          </div>
+                          
                           <h3 className="text-lg font-semibold text-gray-800 mb-3">{schedule.judul}</h3>
+                          
                           <div className="space-y-2 text-gray-600 mb-4">
                             <div className="flex items-center">
-                              <Calendar size={16} className="mr-2" />
+                              <Calendar size={16} className="mr-2 text-[#2622FF]" />
                               <span className="text-sm">{formatDate(schedule.tanggal)}</span>
                             </div>
                             <div className="flex items-center">
-                              <Clock size={16} className="mr-2" />
+                              <Clock size={16} className="mr-2 text-[#2622FF]" />
                               <span className="text-sm">{schedule.waktuMulai} - {schedule.waktuSelesai}</span>
                             </div>
                             <div className="flex items-center">
-                              <MapPin size={16} className="mr-2" />
+                              <MapPin size={16} className="mr-2 text-[#2622FF]" />
                               <span className="text-sm">{schedule.lokasi}</span>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center text-gray-600">
-                              <Users size={16} className="mr-2" />
-                              <span className="text-sm font-medium">{schedule.jumlahKuota || 0} orang</span>
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Kuota Tersedia
-                            </div>
-                          </div>
+                          
                           <button 
                             onClick={() => handleViewDetail(schedule)}
-                            className="w-full bg-[#2622FF] text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-2 rounded-lg font-medium transition-colors"
                           >
-                            Lihat Lokasi Detail
+                            Lihat Detail Lokasi
                           </button>
                         </div>
                       </div>
@@ -472,6 +503,11 @@ export default function HomePage() {
               <MapContainer
                 center={[-7.2, 107.9]}
                 zoom={10}
+                zoomControl={false}
+                dragging={false}
+                scrollWheelZoom={false}
+                doubleClickZoom={false}
+                touchZoom={false}
                 style={{ height: '100%', width: '100%' }}
               >
                 <TileLayer
@@ -523,6 +559,32 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Pengumuman</h2>
           </div>
           
+          {loading ? (
+            <div className="space-y-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                  <div className="md:w-1/3 bg-gray-200 h-48 md:h-64"></div>
+                  <div className="md:w-2/3 p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    </div>
+                    <div className="h-10 bg-gray-200 rounded w-40"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="space-y-8">
             {pengumuman.map((item) => (
               <div key={item.id} className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
@@ -575,6 +637,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          )}
         </div>
         <div className="text-center py-16">
             <a href="/pengumuman" className="text-[#2622FF] hover:text-blue-900 font-medium flex items-center justify-center">

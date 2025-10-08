@@ -75,15 +75,30 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      const submitData = { ...formData };
+      const submitData: any = { ...formData };
       if (selectedFile) {
         // In real app, upload file and get URL
         submitData.gambar = URL.createObjectURL(selectedFile);
       }
+      
+      // Get current user ID from session
+      try {
+        const userResponse = await fetch('/api/auth/me');
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          submitData.authorId = userData.user?.id || userData.id;
+          console.log('Author ID:', submitData.authorId, 'User:', userData);
+        } else {
+          console.error('Failed to get user data');
+        }
+      } catch (error) {
+        console.error('Error getting user:', error);
+      }
+      
       onSave(submitData);
       onClose();
     }

@@ -5,6 +5,7 @@ import {
   FileText,
   FileDown,
   Filter,
+  ArrowUpDown,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -27,12 +28,15 @@ interface ApiReport {
 export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [filterPeriod, setFilterPeriod] = useState<
     "all" | "weekly" | "monthly"
   >("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [sortField, setSortField] = useState<keyof Report | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
 
 
@@ -49,12 +53,27 @@ export default function ReportPage() {
       applyFilter(formattedReports, filterPeriod);
     } catch (error) {
       console.error("Error fetching reports:", error);
+    } finally {
+      setLoading(false);
     }
   }, [filterPeriod]);
 
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
+
+  useEffect(() => {
+    applyFilter(reports, filterPeriod);
+  }, [sortField, sortDirection]);
+
+  const handleSort = (field: keyof Report) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const applyFilter = (
     reportsData: Report[],
@@ -79,7 +98,23 @@ export default function ReportPage() {
       );
     }
 
-    setFilteredReports(filtered);
+    const sorted = [...filtered].sort((a, b) => {
+      if (!sortField) return 0;
+      
+      let aValue: string | number = a[sortField];
+      let bValue: string | number = b[sortField];
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredReports(sorted);
   };
 
   const handleFilterChange = (period: "all" | "weekly" | "monthly") => {
@@ -169,6 +204,12 @@ export default function ReportPage() {
     <div className="p-4 lg:p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        ) : (
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center">
@@ -187,6 +228,7 @@ export default function ReportPage() {
             <span>Unduh Laporan</span>
           </button>
         </div>
+        )}
       </div>
 
       {/* Filter Section */}
@@ -247,21 +289,41 @@ export default function ReportPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tanggal
+                  <button onClick={() => handleSort('tanggal')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Tanggal</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lokasi
+                  <button onClick={() => handleSort('lokasi')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Lokasi</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Jumlah Dilayani
+                  <button onClick={() => handleSort('jumlah')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Jumlah Dilayani</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  <button onClick={() => handleSort('status')} className="flex items-center space-x-1 hover:text-gray-700">
+                    <span>Status</span>
+                    <ArrowUpDown size={14} />
+                  </button>
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((report) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="px-6 py-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Memuat data...</p>
+                  </td>
+                </tr>
+              ) : (
+              filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((report) => (
                 <tr
                   key={report.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -289,7 +351,8 @@ export default function ReportPage() {
                     {getStatusBadge(report.status)}
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
             </tbody>
           </table>
         </div>

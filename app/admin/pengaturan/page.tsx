@@ -397,19 +397,37 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
       {/* Page Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center">
-          <Settings className="mr-3 text-blue-600" size={28} />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Pengaturan</h1>
-            <p className="text-gray-600 mt-1">
-              Kelola informasi kontak dan FAQ sistem
-            </p>
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center">
+            <Settings className="mr-3 text-blue-600" size={28} />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Pengaturan</h1>
+              <p className="text-gray-600 mt-1">
+                Kelola informasi kontak dan FAQ sistem
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Profile Section - Available for All Roles */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        {loading ? (
+          <div className="animate-pulse p-6 space-y-4">
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            <div className="space-y-3">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -595,11 +613,25 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* Contact Information Section - Only for Super Admin */}
       {currentUserRole === "super_admin" && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {loading ? (
+            <div className="animate-pulse p-6 space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+              <div className="space-y-3">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -722,12 +754,26 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
       )}
 
       {/* Fee Management Section - Only for Super Admin */}
       {currentUserRole === "super_admin" && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {loading ? (
+            <div className="animate-pulse p-6 space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div>
@@ -854,6 +900,8 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
       )}
 
@@ -901,11 +949,9 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Memuat data...
+                  <td colSpan={4} className="px-6 py-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Memuat data...</p>
                   </td>
                 </tr>
               ) : faqs.length === 0 ? (

@@ -27,6 +27,19 @@ interface Article {
   featured?: boolean;
 }
 
+interface ApiArticle {
+  id: number;
+  judul: string;
+  isi: string;
+  author?: string;
+  tanggal: string;
+  category?: string;
+  gambar?: string;
+  createdAt: string;
+  updatedAt: string;
+  views?: number;
+}
+
 
 
 
@@ -34,7 +47,6 @@ interface Article {
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [articlesData, setArticlesData] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +54,7 @@ export default function NewsPage() {
   const [selectedDetailArticle, setSelectedDetailArticle] = useState<Article | null>(null);
   const [categories, setCategories] = useState<string[]>(['Semua', 'Pengumuman', 'Pemberitahuan', 'Informasi Penting']);
   const itemsPerPage = 6;
+  const [sortOrder, setSortOrder] = useState<'terbaru' | 'terlama'>('terbaru');
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -49,30 +62,32 @@ export default function NewsPage() {
         const response = await fetch('/api/pengumuman');
         if (response.ok) {
           const data = await response.json();
+          console.log('API Response:', data);
           if (Array.isArray(data)) {
-            const formattedArticles = data.map((item: any) => {
+            const formattedArticles = data.map((item: ApiArticle) => {
               // Strip HTML tags for excerpt
               const plainText = item.isi.replace(/<[^>]*>/g, '');
+              console.log('Item author:', item.author, 'Item:', item);
               
               return {
                 id: item.id,
                 judul: item.judul,
                 isi: item.isi,
                 excerpt: plainText.substring(0, 200) + '...',
-                author: 'Admin SIM Keliling',
+                author: item.author || 'Admin SIM Keliling',
                 tanggal: item.tanggal.split('T')[0],
                 category: item.category || 'Pengumuman',
                 gambar: item.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=600',
                 createdAt: item.createdAt,
                 updatedAt: item.updatedAt,
-                views: Math.floor(Math.random() * 3000) + 500,
+                views: item.views || 0,
                 featured: item.category === 'Informasi Penting'
               };
             });
             setArticlesData(formattedArticles);
             
             // Extract unique categories
-            const uniqueCategories = ['Semua', ...Array.from(new Set(formattedArticles.map((article: any) => article.category)))].filter(Boolean);
+            const uniqueCategories = ['Semua', ...Array.from(new Set(formattedArticles.map((article: Article) => article.category)))].filter(Boolean);
             setCategories(uniqueCategories);
           }
         }
@@ -93,6 +108,10 @@ export default function NewsPage() {
                          article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          plainContent.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
+  }).sort((a, b) => {
+    const dateA = new Date(a.tanggal).getTime();
+    const dateB = new Date(b.tanggal).getTime();
+    return sortOrder === 'terbaru' ? dateB - dateA : dateA - dateB;
   });
 
   const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
@@ -109,7 +128,18 @@ export default function NewsPage() {
     setCurrentPage(1);
   }, [selectedCategory, searchTerm]);
 
-  const handleReadMore = (article: Article) => {
+  const handleReadMore = async (article: Article) => {
+    try {
+      const response = await fetch(`/api/pengumuman/${article.id}/views`, { method: 'POST' });
+      if (response.ok) {
+        const data = await response.json();
+        setArticlesData(prev => prev.map(a => 
+          a.id === article.id ? { ...a, views: data.views } : a
+        ));
+      }
+    } catch (error) {
+      console.error('Error incrementing views:', error);
+    }
     setSelectedDetailArticle(article);
     setShowDetail(true);
   };
@@ -132,7 +162,6 @@ export default function NewsPage() {
     .filter(article => article.category === 'Informasi Penting')
     .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
     .slice(0, 2);
-  const regularArticles = filteredArticles;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -326,15 +355,51 @@ export default function NewsPage() {
             <h2 className="text-3xl font-bold text-gray-800">
               {selectedCategory === 'Semua' ? 'Semua Pengumuman' : selectedCategory}
             </h2>
-            <p className="text-gray-600">
-              Menampilkan {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredArticles.length)} dari {filteredArticles.length} pengumuman
-            </p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Urutkan:</span>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'terbaru' | 'terlama')}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="terbaru">Terbaru</option>
+                  <option value="terlama">Terlama</option>
+                </select>
+              </div>
+              <p className="text-gray-600">
+                Menampilkan {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredArticles.length)} dari {filteredArticles.length} pengumuman
+              </p>
+            </div>
           </div>
 
           {loading ? (
-            <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Memuat pengumuman...</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                  <div className="w-full h-48 bg-gray-200"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="h-6 bg-gray-200 rounded-full w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                      <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-20"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-200 rounded w-28"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredArticles.length === 0 ? (
             <div className="text-center py-16">

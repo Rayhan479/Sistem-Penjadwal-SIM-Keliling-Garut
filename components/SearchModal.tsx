@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MapPin, Clock, Search, Filter } from 'lucide-react';
+import { X, Calendar, MapPin, Clock, Search, Filter, Users } from 'lucide-react';
 
 interface Schedule {
   id: number;
@@ -11,6 +11,8 @@ interface Schedule {
   waktuSelesai: string;
   status: string;
   gambar?: string;
+  jumlahKuota?: number;
+  sisaKuota?: number;
 }
 
 interface SearchModalProps {
@@ -38,7 +40,7 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
     setIsSearching(true);
     
     try {
-      const response = await fetch('/api/jadwal');
+      const response = await fetch('/api/jadwal/with-quota');
       const scheduleData = await response.json();
       
       let results = scheduleData;
@@ -180,8 +182,19 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
                         className="w-full h-32 object-cover"
                       />
                       <div className="p-4">
-                        <div className="mb-3">
+                        <div className="flex items-center justify-between mb-3">
                           {getStatusBadge(schedule.status)}
+                          {(schedule.sisaKuota ?? schedule.jumlahKuota ?? 0) > 0 ? (
+                            <div className="flex items-center text-gray-600">
+                              <Users size={14} className="mr-1" />
+                              <span className="text-xs font-medium">{schedule.sisaKuota ?? schedule.jumlahKuota} Kuota</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-red-600">
+                              <Users size={14} className="mr-1" />
+                              <span className="text-xs font-medium">Kuota Habis</span>
+                            </div>
+                          )}
                         </div>
                         
                         <h4 className="text-lg font-semibold text-gray-800 mb-3">
