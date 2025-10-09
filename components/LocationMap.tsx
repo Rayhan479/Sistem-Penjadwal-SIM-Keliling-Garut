@@ -10,8 +10,8 @@ interface LocationMapProps {
 
 export default function LocationMap({ latitude = -7.2, longitude = 107.9, onLocationChange }: LocationMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
-  const [marker, setMarker] = useState<any>(null);
+  const [map, setMap] = useState<unknown>(null);
+  const [marker, setMarker] = useState<unknown>(null);
   const [inputLat, setInputLat] = useState(latitude.toString());
   const [inputLng, setInputLng] = useState(longitude.toString());
 
@@ -19,7 +19,8 @@ export default function LocationMap({ latitude = -7.2, longitude = 107.9, onLoca
     if (typeof window !== 'undefined' && mapRef.current && !map) {
       import('leaflet').then((L) => {
         // Fix for default markers
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        const iconDefault = L.Icon.Default.prototype as typeof L.Icon.Default.prototype & { _getIconUrl?: () => string };
+        delete iconDefault._getIconUrl;
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
           iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -34,14 +35,14 @@ export default function LocationMap({ latitude = -7.2, longitude = 107.9, onLoca
 
         const markerInstance = L.marker([latitude, longitude], { draggable: true }).addTo(mapInstance);
         
-        markerInstance.on('dragend', (e: any) => {
+        markerInstance.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
           const { lat, lng } = e.target.getLatLng();
           setInputLat(lat.toFixed(6));
           setInputLng(lng.toFixed(6));
           onLocationChange(lat, lng);
         });
 
-        mapInstance.on('click', (e: any) => {
+        mapInstance.on('click', (e: { latlng: { lat: number; lng: number } }) => {
           const { lat, lng } = e.latlng;
           markerInstance.setLatLng([lat, lng]);
           setInputLat(lat.toFixed(6));
@@ -49,8 +50,8 @@ export default function LocationMap({ latitude = -7.2, longitude = 107.9, onLoca
           onLocationChange(lat, lng);
         });
 
-        setMap(mapInstance);
-        setMarker(markerInstance);
+        setMap(mapInstance as unknown);
+        setMarker(markerInstance as unknown);
       });
     }
   }, [latitude, longitude, map, onLocationChange]);
@@ -61,8 +62,8 @@ export default function LocationMap({ latitude = -7.2, longitude = 107.9, onLoca
     
     if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
       if (map && marker) {
-        map.setView([lat, lng], 13);
-        marker.setLatLng([lat, lng]);
+        (map as { setView: (center: [number, number], zoom: number) => void }).setView([lat, lng], 13);
+        (marker as { setLatLng: (latlng: [number, number]) => void }).setLatLng([lat, lng]);
         onLocationChange(lat, lng);
       }
     }

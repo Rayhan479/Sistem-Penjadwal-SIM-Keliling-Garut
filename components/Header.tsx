@@ -1,10 +1,16 @@
 import React from 'react';
 import { Menu, User, LogOut } from 'lucide-react';
 
+interface UserData {
+  id: number;
+  name: string;
+  role: string;
+}
+
 interface HeaderProps {
   onMenuToggle: () => void;
   currentPage: string;
-  user?: any;
+  user?: UserData;
   onLogout?: () => void;
 }
 

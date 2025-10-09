@@ -11,11 +11,19 @@ import SettingsPage from "@/app/admin/pengaturan/page";
 import "../globals.css";
 import MainContent from "@/app/admin/page";
 
+interface User {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function AdminLayout() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("beranda");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me')

@@ -29,6 +29,14 @@ interface Schedule {
   gambar?: string;
 }
 
+interface Laporan {
+  id: number;
+  tanggal: string;
+  lokasi: string;
+  jumlah: number;
+  status: string;
+}
+
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,15 +172,15 @@ export default function SchedulePage() {
       const scheduleTanggal = new Date(schedule.tanggal).toISOString().split('T')[0];
       
       const response = await fetch('/api/laporan');
-      const laporan = await response.json();
+      const laporan: Laporan[] = await response.json();
       const totalDilayani = laporan
-        .filter((l: any) => {
+        .filter((l: Laporan) => {
           const laporanTanggal = new Date(l.tanggal).toISOString().split('T')[0];
           return laporanTanggal === scheduleTanggal &&
             l.lokasi === schedule.lokasi &&
             l.status === 'selesai';
         })
-        .reduce((sum: number, l: any) => sum + l.jumlah, 0);
+        .reduce((sum: number, l: Laporan) => sum + l.jumlah, 0);
       
       const sisa = schedule.jumlahKuota - totalDilayani;
       setSisaKuota(sisa > 0 ? sisa : 0);

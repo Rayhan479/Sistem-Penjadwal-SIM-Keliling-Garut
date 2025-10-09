@@ -23,7 +23,7 @@ export async function POST() {
       authorId: adminUser.id,
       authorName: adminUser.name
     });
-  } catch (error) {
+  } catch  {
     return NextResponse.json({ error: 'Failed to update authors' }, { status: 500 });
   }
 }

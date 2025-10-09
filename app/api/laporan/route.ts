@@ -40,7 +40,7 @@ export async function GET() {
       orderBy: { tanggal: 'desc' }
     });
     return NextResponse.json(laporan);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch laporan' }, { status: 500 });
   }
 }
@@ -52,29 +52,38 @@ export async function POST(request: NextRequest) {
 
     const tanggalDate = new Date(tanggal);
 
-    const laporan = await prisma.laporan.upsert({
+    // Check if laporan already exists
+    const existingLaporan = await prisma.laporan.findFirst({
       where: {
-        tanggal_lokasi: {
-          tanggal: tanggalDate,
-          lokasi
-        }
-      },
-      update: {
-        jumlah: { increment: parseInt(jumlah) },
-        status
-      },
-      create: {
         tanggal: tanggalDate,
-        lokasi,
-        jumlah: parseInt(jumlah),
-        status
+        lokasi
       }
     });
+
+    let laporan;
+    if (existingLaporan) {
+      laporan = await prisma.laporan.update({
+        where: { id: existingLaporan.id },
+        data: {
+          jumlah: existingLaporan.jumlah + parseInt(jumlah),
+          status
+        }
+      });
+    } else {
+      laporan = await prisma.laporan.create({
+        data: {
+          tanggal: tanggalDate,
+          lokasi,
+          jumlah: parseInt(jumlah),
+          status
+        }
+      });
+    }
 
     await checkAndUpdateJadwalStatus(tanggalDate, lokasi);
 
     return NextResponse.json(laporan, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create laporan' }, { status: 500 });
   }
 }

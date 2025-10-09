@@ -11,6 +11,11 @@ interface QuillEditorProps {
   hasError?: boolean
 }
 
+type QuillInstance = {
+  root: { innerHTML: string };
+  on: (event: string, handler: () => void) => void;
+};
+
 export default function QuillEditor({
   value,
   onChange,
@@ -19,7 +24,7 @@ export default function QuillEditor({
   hasError = false,
 }: QuillEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
-  const quillRef = useRef<any>(null)
+  const quillRef = useRef<QuillInstance | null>(null)
   const initialized = useRef(false) // 👈 tambahan flag
   const [isLoaded, setIsLoaded] = useState(false)
 

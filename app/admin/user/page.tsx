@@ -96,7 +96,7 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleSaveUser = async (userData: any) => {
+  const handleSaveUser = async (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       if (editingUser) {
         const response = await fetch(`/api/users/${editingUser.id}`, {

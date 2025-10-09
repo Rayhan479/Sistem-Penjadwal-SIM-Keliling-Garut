@@ -9,7 +9,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(faqs);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch FAQs' }, { status: 500 });
   }
 }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json(faq, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create FAQ' }, { status: 500 });
   }
 }

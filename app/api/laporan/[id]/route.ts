@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await checkAndUpdateJadwalStatus(new Date(tanggal), lokasi);
 
     return NextResponse.json(laporan);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update laporan' }, { status: 500 });
   }
 }
@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     return NextResponse.json({ message: 'Laporan deleted successfully' });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete laporan' }, { status: 500 });
   }
 }

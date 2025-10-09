@@ -9,6 +9,7 @@ export interface UserPayload {
   email: string;
   name: string;
   role: 'super_admin' | 'admin';
+  [key: string]: unknown;
 }
 
 export async function createToken(payload: UserPayload) {

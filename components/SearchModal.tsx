@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { X, Calendar, MapPin, Clock, Search, Filter, Users } from 'lucide-react';
 
 interface Schedule {
@@ -7,11 +8,13 @@ interface Schedule {
   tanggal: string;
   lokasi: string;
   alamatLengkap?: string;
+  latitude?: number;
+  longitude?: number;
   waktuMulai: string;
   waktuSelesai: string;
   status: string;
   gambar?: string;
-  jumlahKuota?: number;
+  jumlahKuota: number;
   sisaKuota?: number;
 }
 
@@ -30,13 +33,7 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
   const [filteredResults, setFilteredResults] = useState<Schedule[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      performSearch();
-    }
-  }, [isOpen, searchFilters]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setIsSearching(true);
     
     try {
@@ -72,7 +69,13 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [searchFilters]);
+
+  useEffect(() => {
+    if (isOpen) {
+      performSearch();
+    }
+  }, [isOpen, performSearch]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -176,9 +179,11 @@ export default function SearchModal({ isOpen, onClose, searchFilters, onViewDeta
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredResults.map((schedule) => (
                     <div key={schedule.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                      <img 
+                      <Image 
                         src={schedule.gambar || 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=400'} 
                         alt={schedule.judul}
+                        width={400}
+                        height={128}
                         className="w-full h-32 object-cover"
                       />
                       <div className="p-4">

@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
     
     return NextResponse.json(faq);
-  } catch (error) {
+  } catch  {
     return NextResponse.json({ error: 'Failed to update FAQ' }, { status: 500 });
   }
 }
@@ -30,7 +30,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     });
     
     return NextResponse.json({ message: 'FAQ deleted successfully' });
-  } catch (error) {
+  } catch  {
     return NextResponse.json({ error: 'Failed to delete FAQ' }, { status: 500 });
   }
 }

@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@/lib/generated/prisma';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient() as PrismaClient & {
+  fees: {
+    findFirst: () => Promise<{ id: number; simA: number; simB1: number; simB2: number; simC: number } | null>;
+    upsert: (args: {
+      where: { id: number };
+      update: { simA: number; simB1: number; simB2: number; simC: number };
+      create: { id: number; simA: number; simB1: number; simB2: number; simC: number };
+    }) => Promise<{ id: number; simA: number; simB1: number; simB2: number; simC: number }>;
+  };
+};
 
 // GET - Fetch fees
 export async function GET() {
   try {
-    const fees = await (prisma as any).fees.findFirst();
+    const fees = await prisma.fees.findFirst();
     
     if (!fees) {
       // Return default fees if none exist
@@ -34,7 +43,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { simA, simB1, simB2, simC } = body;
 
-    const fees = await (prisma as any).fees.upsert({
+    const fees = await prisma.fees.upsert({
       where: { id: 1 },
       update: {
         simA: parseInt(simA),

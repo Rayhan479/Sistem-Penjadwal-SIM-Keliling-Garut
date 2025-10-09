@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
       }
 
       setStep('otp');
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan saat mengirim OTP');
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
       }
 
       setStep('password');
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan saat memverifikasi OTP');
     } finally {
       setLoading(false);
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
       }
 
       setStep('success');
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan saat mereset password');
     } finally {
       setLoading(false);

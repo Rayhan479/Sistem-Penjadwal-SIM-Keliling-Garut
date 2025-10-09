@@ -20,7 +20,7 @@ export async function GET() {
       author: item.author?.name || 'Admin SIM Keliling'
     }));
     return NextResponse.json(pengumumanWithAuthor);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch pengumuman' }, { status: 500 });
   }
 }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(pengumuman, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create pengumuman' }, { status: 500 });
   }
 }

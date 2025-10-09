@@ -16,7 +16,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const id = parseInt(paramId);
     const { username, email, name, role, isActive, password } = await request.json();
 
-    const updateData: any = { username, email, name, role, isActive };
+    const updateData: {
+      username: string;
+      email: string;
+      name: string;
+      role: string;
+      isActive: boolean;
+      password?: string;
+    } = { username, email, name, role, isActive };
 
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);

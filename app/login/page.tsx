@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogIn, User, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, User, Lock, AlertCircle, Link } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
       router.push('/admin');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan saat login');
     } finally {
       setLoading(false);
@@ -103,9 +103,9 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-4 text-center text-sm text-gray-600">
-          <a href="/" className="text-blue-600 hover:text-blue-700">
+          <Link href="/" className="text-blue-600 hover:text-blue-700">
             Kembali ke Beranda
-          </a>
+          </Link>
         </div>
       </div>
     </div>

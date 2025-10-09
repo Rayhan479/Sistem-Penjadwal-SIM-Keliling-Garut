@@ -35,7 +35,8 @@ export default function LocationDetailModal({ isOpen, onClose, schedule }: Locat
   useEffect(() => {
     if (typeof window !== 'undefined') {
       import('leaflet').then((L) => {
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        const iconDefault = L.Icon.Default.prototype as typeof L.Icon.Default.prototype & { _getIconUrl?: () => string };
+        delete iconDefault._getIconUrl;
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
           iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',

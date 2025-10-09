@@ -52,11 +52,32 @@ interface PengumumanItem {
   createdAt?: string;
   updatedAt?: string;
   views?: number;
+  author?: string;
+}
+
+interface ApiPengumumanItem {
+  id: number;
+  judul: string;
+  isi: string;
+  gambar?: string;
+  tanggal: string;
+  category?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  views?: number;
 }
 
 interface BoundaryMember {
   type: string;
-  geometry?: Array<{ lat: number; lon: number }>;
+  geometry?: Array<{ lat: number; lon: number }>;}
+
+interface GarutBoundary {
+  type: 'Feature';
+  geometry: {
+    type: 'Polygon';
+    coordinates: number[][][];
+  };
+  properties: Record<string, unknown>;
 }
 
 const procedures = [
@@ -97,7 +118,7 @@ export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [showAnnouncementDetail, setShowAnnouncementDetail] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<PengumumanItem | null>(null);
-  const [garutBoundary, setGarutBoundary] = useState<any>(null);
+  const [garutBoundary, setGarutBoundary] = useState<GarutBoundary | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -122,11 +143,12 @@ export default function HomePage() {
         console.log('Upcoming schedules count:', filteredUpcoming.length);
         setLocations(['Semua Lokasi', ...locationsData]);
         // Process pengumuman data to handle HTML content
-        const processedPengumuman = pengumumanData.slice(0, 2).map((item: any) => ({
+        const processedPengumuman = pengumumanData.slice(0, 2).map((item: ApiPengumumanItem & { author?: string }) => ({
           ...item,
           isi: item.isi.replace(/<[^>]*>/g, '').substring(0, 200) + '...', // Strip HTML and truncate
           category: item.category || 'Pengumuman',
-          views: Math.floor(Math.random() * 3000) + 500
+          views: item.views || 0,
+          author: item.author || 'Admin SIM Keliling'
         }));
         setPengumuman(processedPengumuman);
         
@@ -142,9 +164,9 @@ export default function HomePage() {
             
             if (coordinates.length > 0) {
               setGarutBoundary({
-                type: 'Feature',
+                type: 'Feature' as const,
                 geometry: {
-                  type: 'Polygon',
+                  type: 'Polygon' as const,
                   coordinates: coordinates
                 },
                 properties: {}
@@ -270,12 +292,13 @@ export default function HomePage() {
   };
 
   const handleReadAnnouncement = (announcement: PengumumanItem) => {
-    setSelectedAnnouncement({
+    const announcementWithAuthor: PengumumanItem = {
       ...announcement,
       author: 'Admin SIM Keliling',
       createdAt: announcement.createdAt || new Date().toISOString(),
       updatedAt: announcement.updatedAt || new Date().toISOString()
-    });
+    };
+    setSelectedAnnouncement(announcementWithAuthor);
     setShowAnnouncementDetail(true);
   };
 
@@ -285,9 +308,19 @@ export default function HomePage() {
   };
 
   if (showAnnouncementDetail && selectedAnnouncement) {
+    const articleForDetail = {
+      ...selectedAnnouncement,
+      excerpt: selectedAnnouncement.isi.substring(0, 200) + '...',
+      author: selectedAnnouncement.author || 'Admin SIM Keliling',
+      category: selectedAnnouncement.category || 'Pengumuman',
+      createdAt: selectedAnnouncement.createdAt || new Date().toISOString(),
+      updatedAt: selectedAnnouncement.updatedAt || new Date().toISOString(),
+      views: selectedAnnouncement.views || 0,
+      featured: false
+    };
     return (
       <AnnouncementDetail 
-        article={selectedAnnouncement as any}
+        article={articleForDetail}
         onBack={handleBackFromAnnouncement}
         relatedArticles={[]}
       />
@@ -614,7 +647,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                     <div className="flex items-center">
                       <User size={16} className="mr-2" />
-                      <span>Admin SIM Keliling</span>
+                      <span>{item.author || 'Admin SIM Keliling'}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar size={16} className="mr-2" />

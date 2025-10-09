@@ -79,7 +79,7 @@ export default function AnnouncementModal({ isOpen, onClose, onSave, editingAnno
     e.preventDefault();
     
     if (validateForm()) {
-      const submitData: any = { ...formData };
+      const submitData: Omit<Announcement, 'id'> & { authorId?: number } = { ...formData };
       if (selectedFile) {
         // In real app, upload file and get URL
         submitData.gambar = URL.createObjectURL(selectedFile);

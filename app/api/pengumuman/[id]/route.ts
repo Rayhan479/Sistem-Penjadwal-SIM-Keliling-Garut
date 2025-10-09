@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     return NextResponse.json(pengumuman);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update pengumuman' }, { status: 500 });
   }
 }
@@ -43,7 +43,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     });
 
     return NextResponse.json({ message: 'Pengumuman deleted successfully' });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete pengumuman' }, { status: 500 });
   }
 }

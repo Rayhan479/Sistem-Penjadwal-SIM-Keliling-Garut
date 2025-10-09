@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { X, User, Mail, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 interface User {
   id: number;
@@ -16,7 +16,7 @@ interface User {
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: any) => void;
+  onSave: (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password?: string }) => void;
   editingUser?: User | null;
 }
 
@@ -106,12 +106,10 @@ export default function UserModal({ isOpen, onClose, onSave, editingUser }: User
     e.preventDefault();
     
     if (validateForm()) {
-      const { confirmPassword, ...userData } = formData;
+      const { confirmPassword, password, ...userData } = formData;
       // Only include password if it's provided
-      if (!userData.password) {
-        delete userData.password;
-      }
-      onSave(userData);
+      const submitData = password ? { ...userData, password } : userData;
+      onSave(submitData);
       onClose();
     }
   };
