@@ -114,3 +114,16 @@ model PasswordReset {
   @@map("password_resets")
 }
 
+model SmtpSettings {
+  id        Int      @id @default(1)
+  host      String   @default("smtp.gmail.com")
+  port      Int      @default(587)
+  username  String
+  password  String
+  secure    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("smtp_settings")
+}
+

@@ -192,10 +192,10 @@ export default function LocationDetailModal({ isOpen, onClose, schedule }: Locat
                         <Users size={16} className="mr-3 text-blue-600" />
                         <div>
                           <span className="font-medium">Kuota: </span>
+                          <span className="text-sm ml-1">({quotaData.sisaKuota > 0 ? 'Tersedia' : 'Habis'}) </span>
                           <span className={quotaData.sisaKuota > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
                             {quotaData.sisaKuota} / {quotaData.jumlahKuota}
                           </span>
-                          <span className="text-sm ml-1">({quotaData.sisaKuota > 0 ? 'Tersedia' : 'Habis'})</span>
                         </div>
                       </div>
                     )}

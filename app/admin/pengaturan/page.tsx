@@ -37,6 +37,14 @@ interface Fee {
   simC: number;
 }
 
+interface SmtpSettings {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  secure: boolean;
+}
+
 interface UserProfile {
   name: string;
   email: string;
@@ -88,6 +96,21 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [notification, setNotification] = useState<{show: boolean; message: string}>({show: false, message: ''});
+  const [smtpSettings, setSmtpSettings] = useState<SmtpSettings>({
+    host: '',
+    port: 587,
+    username: '',
+    password: '',
+    secure: false,
+  });
+  const [isSmtpEditing, setIsSmtpEditing] = useState(false);
+  const [smtpFormData, setSmtpFormData] = useState<SmtpSettings>({
+    host: '',
+    port: 587,
+    username: '',
+    password: '',
+    secure: false,
+  });
 
   React.useEffect(() => {
     fetch("/api/auth/me")
@@ -111,10 +134,11 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const fetchData = async () => {
     try {
-      const [faqResponse, contactResponse, feeResponse] = await Promise.all([
+      const [faqResponse, contactResponse, feeResponse, smtpResponse] = await Promise.all([
         fetch("/api/faq"),
         fetch("/api/contact"),
         fetch("/api/fees"),
+        fetch("/api/smtp"),
       ]);
 
       if (faqResponse.ok) {
@@ -139,6 +163,14 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         setFeeFormData(feeData);
       } else {
         console.error("Fee fetch failed:", feeResponse.status);
+      }
+
+      if (smtpResponse.ok) {
+        const smtpData = await smtpResponse.json();
+        setSmtpSettings(smtpData);
+        setSmtpFormData(smtpData);
+      } else {
+        console.error("SMTP fetch failed:", smtpResponse.status);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -376,6 +408,40 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
       console.error("Error changing password:", error);
       alert("Terjadi kesalahan saat mengubah password");
     }
+  };
+
+  const handleSmtpEdit = () => {
+    setSmtpFormData(smtpSettings);
+    setIsSmtpEditing(true);
+  };
+
+  const handleSmtpSave = async () => {
+    try {
+      const response = await fetch("/api/smtp", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(smtpFormData),
+      });
+
+      if (response.ok) {
+        const updatedSmtp = await response.json();
+        setSmtpSettings(updatedSmtp);
+        setIsSmtpEditing(false);
+        setNotification({show: true, message: 'Pengaturan SMTP berhasil diperbarui'});
+        setTimeout(() => setNotification({show: false, message: ''}), 3000);
+      }
+    } catch (error) {
+      console.error("Error saving SMTP settings:", error);
+    }
+  };
+
+  const handleSmtpCancel = () => {
+    setSmtpFormData(smtpSettings);
+    setIsSmtpEditing(false);
+  };
+
+  const handleSmtpInputChange = (field: keyof SmtpSettings, value: string | number | boolean) => {
+    setSmtpFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -752,6 +818,157 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
                   {contactInfo.address}
                 </p>
               )}
+            </div>
+          </div>
+          </>
+          )}
+        </div>
+      )}
+
+      {/* SMTP Settings Section - Only for Super Admin */}
+      {currentUserRole === "super_admin" && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {loading ? (
+            <div className="animate-pulse p-6 space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="space-y-3">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ) : (
+          <>
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <Mail className="mr-2 text-blue-600" size={20} />
+                  Pengaturan SMTP
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Konfigurasi email server untuk pengiriman OTP
+                </p>
+              </div>
+              {!isSmtpEditing ? (
+                <button
+                  onClick={handleSmtpEdit}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                >
+                  <Edit size={16} />
+                  <span>Edit</span>
+                </button>
+              ) : (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleSmtpSave}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                  >
+                    <Save size={16} />
+                    <span>Simpan</span>
+                  </button>
+                  <button
+                    onClick={handleSmtpCancel}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Batal
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  SMTP Host
+                </label>
+                {isSmtpEditing ? (
+                  <input
+                    type="text"
+                    value={smtpFormData.host}
+                    onChange={(e) => handleSmtpInputChange('host', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="smtp.gmail.com"
+                  />
+                ) : (
+                  <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                    {smtpSettings.host}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  SMTP Port
+                </label>
+                {isSmtpEditing ? (
+                  <input
+                    type="number"
+                    value={smtpFormData.port}
+                    onChange={(e) => handleSmtpInputChange('port', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="587"
+                  />
+                ) : (
+                  <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                    {smtpSettings.port}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username / Email
+              </label>
+              {isSmtpEditing ? (
+                <input
+                  type="text"
+                  value={smtpFormData.username}
+                  onChange={(e) => handleSmtpInputChange('username', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="your-email@gmail.com"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {smtpSettings.username}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password / App Password
+              </label>
+              {isSmtpEditing ? (
+                <input
+                  type="password"
+                  value={smtpFormData.password}
+                  onChange={(e) => handleSmtpInputChange('password', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Kosongkan jika tidak ingin mengubah"
+                />
+              ) : (
+                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
+                  {smtpSettings.password}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="secure"
+                checked={isSmtpEditing ? smtpFormData.secure : smtpSettings.secure}
+                onChange={(e) => isSmtpEditing && handleSmtpInputChange('secure', e.target.checked)}
+                disabled={!isSmtpEditing}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="secure" className="ml-2 text-sm text-gray-700">
+                Gunakan SSL/TLS (Port 465)
+              </label>
             </div>
           </div>
           </>

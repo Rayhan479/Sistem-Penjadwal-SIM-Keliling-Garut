@@ -273,8 +273,8 @@ export default function NewsPage() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 rounded-full font-medium transition-colors ${
                     selectedCategory === category
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                      ? 'bg-[#2622FF] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-800'
                   }`}
                 >
                   {category}
@@ -337,7 +337,7 @@ export default function NewsPage() {
                     
                     <button 
                       onClick={() => handleReadMore(article)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+                      className="w-full bg-[#2622FF] hover:bg-blue-900 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
                     >
                       Baca Selengkapnya
                       <ArrowRight size={16} className="ml-2" />
@@ -458,7 +458,7 @@ export default function NewsPage() {
                       </span>
                       <button 
                         onClick={() => handleReadMore(article)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center"
+                        className="bg-[#2622FF] hover:bg-blue-900 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center"
                       >
                         Baca
                         <ArrowRight size={14} className="ml-1" />
@@ -487,7 +487,7 @@ export default function NewsPage() {
                       onClick={() => handlePageChange(page)}
                       className={`px-3 py-2 rounded-lg ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-[#2622FF] text-white'
                           : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >

@@ -1,18 +1,32 @@
 import nodemailer from 'nodemailer';
+import { PrismaClient } from '@/lib/generated/prisma/index.js';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+const prisma = new PrismaClient();
+
+async function getTransporter() {
+  const smtp = await prisma.smtpSettings.findUnique({ where: { id: 1 } });
+  
+  if (!smtp) {
+    throw new Error('SMTP settings not configured');
+  }
+
+  return nodemailer.createTransport({
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    auth: {
+      user: smtp.username,
+      pass: smtp.password,
+    },
+  });
+}
 
 export async function sendOTPEmail(email: string, otp: string, name: string) {
+  const transporter = await getTransporter();
+  const smtp = await prisma.smtpSettings.findUnique({ where: { id: 1 } });
+  
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: `SIM Keliling Garut <${smtp?.username}>`,
     to: email,
     subject: 'Kode OTP Reset Password - SIM Keliling Garut',
     html: `

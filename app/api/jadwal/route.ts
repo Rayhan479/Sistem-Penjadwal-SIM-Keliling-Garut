@@ -6,6 +6,44 @@ const prisma = new PrismaClient();
 // GET - Fetch all jadwal
 export async function GET() {
   try {
+    // Auto-update status before fetching
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const currentTime = now.toTimeString().slice(0, 5);
+
+    await prisma.jadwal.updateMany({
+      where: {
+        tanggal: {
+          gte: today,
+          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+        },
+        waktuMulai: { lte: currentTime },
+        waktuSelesai: { gte: currentTime },
+        status: 'terjadwal'
+      },
+      data: { status: 'berlangsung' }
+    });
+
+    await prisma.jadwal.updateMany({
+      where: {
+        OR: [
+          {
+            tanggal: { lt: today },
+            status: { in: ['terjadwal', 'berlangsung'] }
+          },
+          {
+            tanggal: {
+              gte: today,
+              lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+            },
+            waktuSelesai: { lt: currentTime },
+            status: { in: ['terjadwal', 'berlangsung'] }
+          }
+        ]
+      },
+      data: { status: 'selesai' }
+    });
+
     const jadwal = await prisma.jadwal.findMany({
       orderBy: {
         tanggal: 'asc'
