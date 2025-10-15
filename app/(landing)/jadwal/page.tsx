@@ -44,6 +44,8 @@ export default function LandingSchedulePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        await fetch('/api/cron/update-schedule-status');
+        
         const [schedulesRes, locationsRes] = await Promise.all([
           fetch('/api/jadwal/with-quota'),
           fetch('/api/jadwal/locations')
@@ -68,7 +70,7 @@ export default function LandingSchedulePage() {
     };
     
     fetchData();
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -106,7 +108,7 @@ export default function LandingSchedulePage() {
     );
   };
 
-  const handleFilter = () => {
+  useEffect(() => {
     let filtered = scheduleData;
 
     if (selectedDate) {
@@ -126,6 +128,9 @@ export default function LandingSchedulePage() {
     }
 
     setFilteredSchedules(sortByStatus(filtered));
+  }, [scheduleData, selectedDate, selectedStatus, selectedLocation]);
+
+  const handleFilter = () => {
     setCurrentPage(1);
   };
 

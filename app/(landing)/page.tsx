@@ -124,6 +124,8 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        await fetch('/api/cron/update-schedule-status');
+        
         const [upcomingRes, locationsRes, pengumumanRes] = await Promise.all([
           fetch('/api/jadwal/with-quota'),
           fetch('/api/jadwal/locations'),
@@ -182,6 +184,8 @@ export default function HomePage() {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Auto slider for jadwal cards

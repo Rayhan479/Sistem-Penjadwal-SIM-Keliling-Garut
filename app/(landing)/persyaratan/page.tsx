@@ -196,35 +196,29 @@ export default function RequirementsPage() {
   const [loadingPrices, setLoadingPrices] = useState(true);
 
   useEffect(() => {
-    const fetchFees = async () => {
+    const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/fees');
+        const response = await fetch('/api/sim-categories');
         if (response.ok) {
-          const fees = await response.json();
-          const updatedSimTypes = defaultSimTypes.map(sim => {
-            switch (sim.type) {
-              case 'A':
-                return { ...sim, price: `Rp ${fees.simA.toLocaleString('id-ID')}` };
-              case 'B1':
-                return { ...sim, price: `Rp ${fees.simB1.toLocaleString('id-ID')}` };
-              case 'B2':
-                return { ...sim, price: `Rp ${fees.simB2.toLocaleString('id-ID')}` };
-              case 'C':
-                return { ...sim, price: `Rp ${fees.simC.toLocaleString('id-ID')}` };
-              default:
-                return sim;
-            }
-          });
+          const categories = await response.json();
+          const updatedSimTypes = categories.map((cat: any) => ({
+            type: cat.code,
+            name: cat.name,
+            description: cat.description || '',
+            price: `Rp ${cat.price.toLocaleString('id-ID')}`,
+            icon: <Car size={32} />,
+            color: 'bg-blue-500'
+          }));
           setSimTypes(updatedSimTypes);
         }
       } catch (error) {
-        console.error('Error fetching fees:', error);
+        console.error('Error fetching categories:', error);
       } finally {
         setLoadingPrices(false);
       }
     };
 
-    fetchFees();
+    fetchCategories();
   }, []);
 
   return (

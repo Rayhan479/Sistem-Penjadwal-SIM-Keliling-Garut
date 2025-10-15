@@ -30,11 +30,13 @@ interface FAQ {
   category: string;
 }
 
-interface Fee {
-  simA: number;
-  simB1: number;
-  simB2: number;
-  simC: number;
+interface SimCategory {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  price: number;
+  isDefault: boolean;
 }
 
 interface SmtpSettings {
@@ -64,19 +66,10 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
   });
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fees, setFees] = useState<Fee>({
-    simA: 0,
-    simB1: 0,
-    simB2: 0,
-    simC: 0,
-  });
-  const [isFeeEditing, setIsFeeEditing] = useState(false);
-  const [feeFormData, setFeeFormData] = useState<Fee>({
-    simA: 0,
-    simB1: 0,
-    simB2: 0,
-    simC: 0,
-  });
+  const [simCategories, setSimCategories] = useState<SimCategory[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState({ code: '', name: '', description: '', price: 0 });
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
@@ -134,10 +127,10 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
 
   const fetchData = async () => {
     try {
-      const [faqResponse, contactResponse, feeResponse, smtpResponse] = await Promise.all([
+      const [faqResponse, contactResponse, categoriesResponse, smtpResponse] = await Promise.all([
         fetch("/api/faq"),
         fetch("/api/contact"),
-        fetch("/api/fees"),
+        fetch("/api/sim-categories"),
         fetch("/api/smtp"),
       ]);
 
@@ -157,12 +150,11 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         console.error("Contact fetch failed:", contactResponse.status);
       }
 
-      if (feeResponse.ok) {
-        const feeData = await feeResponse.json();
-        setFees(feeData);
-        setFeeFormData(feeData);
+      if (categoriesResponse.ok) {
+        const categoriesData = await categoriesResponse.json();
+        setSimCategories(categoriesData);
       } else {
-        console.error("Fee fetch failed:", feeResponse.status);
+        console.error("Categories fetch failed:", categoriesResponse.status);
       }
 
       if (smtpResponse.ok) {
@@ -229,39 +221,67 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
     setContactFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFeeEdit = () => {
-    setFeeFormData(fees);
-    setIsFeeEditing(true);
+  const handleAddCategory = () => {
+    setCategoryFormData({ code: '', name: '', description: '', price: 0 });
+    setIsAddingCategory(true);
   };
 
-  const handleFeeSave = async () => {
-    try {
-      const response = await fetch("/api/fees", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feeFormData),
-      });
+  const handleEditCategory = (category: SimCategory) => {
+    setCategoryFormData({ code: category.code, name: category.name, description: category.description || '', price: category.price });
+    setEditingCategoryId(category.id);
+  };
 
-      if (response.ok) {
-        const updatedFees = await response.json();
-        setFees(updatedFees);
-        setIsFeeEditing(false);
-        setNotification({show: true, message: 'Biaya SIM berhasil diperbarui'});
-        setTimeout(() => setNotification({show: false, message: ''}), 3000);
+  const handleSaveCategory = async () => {
+    try {
+      if (editingCategoryId) {
+        const response = await fetch(`/api/sim-categories/${editingCategoryId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(categoryFormData),
+        });
+        if (response.ok) {
+          const updated = await response.json();
+          setSimCategories(prev => prev.map(c => c.id === editingCategoryId ? updated : c));
+          setEditingCategoryId(null);
+          setNotification({show: true, message: 'Kategori SIM berhasil diperbarui'});
+        }
+      } else {
+        const response = await fetch("/api/sim-categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(categoryFormData),
+        });
+        if (response.ok) {
+          const newCategory = await response.json();
+          setSimCategories(prev => [...prev, newCategory]);
+          setIsAddingCategory(false);
+          setNotification({show: true, message: 'Kategori SIM berhasil ditambahkan'});
+        }
       }
+      setTimeout(() => setNotification({show: false, message: ''}), 3000);
     } catch (error) {
-      console.error("Error saving fees:", error);
+      console.error("Error saving category:", error);
     }
   };
 
-  const handleFeeCancel = () => {
-    setFeeFormData(fees);
-    setIsFeeEditing(false);
+  const handleDeleteCategory = async (id: number) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
+      try {
+        const response = await fetch(`/api/sim-categories/${id}`, { method: "DELETE" });
+        if (response.ok) {
+          setSimCategories(prev => prev.filter(c => c.id !== id));
+          setNotification({show: true, message: 'Kategori SIM berhasil dihapus'});
+          setTimeout(() => setNotification({show: false, message: ''}), 3000);
+        }
+      } catch (error) {
+        console.error("Error deleting category:", error);
+      }
+    }
   };
 
-  const handleFeeInputChange = (field: keyof Fee, value: string) => {
-    const numValue = parseInt(value) || 0;
-    setFeeFormData((prev) => ({ ...prev, [field]: numValue }));
+  const handleCancelCategory = () => {
+    setIsAddingCategory(false);
+    setEditingCategoryId(null);
   };
 
   const handleAddFAQ = () => {
@@ -976,149 +996,77 @@ export default function SettingsPage({ userRole }: SettingsPageProps = {}) {
         </div>
       )}
 
-      {/* Fee Management Section - Only for Super Admin */}
+      {/* SIM Categories Section - Only for Super Admin */}
       {currentUserRole === "super_admin" && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          {loading ? (
-            <div className="animate-pulse p-6 space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          ) : (
-          <>
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Biaya SIM
-                </h3>
-                {currentUserRole !== "super_admin" && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Hanya Super Admin yang dapat mengedit biaya
-                  </p>
-                )}
-              </div>
-              {currentUserRole === "super_admin" &&
-                (!isFeeEditing ? (
-                  <button
-                    onClick={handleFeeEdit}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-                  >
-                    <Edit size={16} />
-                    <span>Edit</span>
-                  </button>
-                ) : (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={handleFeeSave}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-                    >
-                      <Save size={16} />
-                      <span>Simpan</span>
-                    </button>
-                    <button
-                      onClick={handleFeeCancel}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                    >
-                      Batal
-                    </button>
-                  </div>
+              <h3 className="text-lg font-semibold text-gray-800">Kategori & Biaya SIM</h3>
+              <button onClick={handleAddCategory} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                <Plus size={16} />
+                <span>Tambah Kategori</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Biaya</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {simCategories.map((category) => (
+                  editingCategoryId === category.id ? (
+                    <tr key={category.id}>
+                      <td className="px-6 py-4">{category.code}</td>
+                      <td className="px-6 py-4"><input type="text" value={categoryFormData.name} onChange={(e) => setCategoryFormData(prev => ({...prev, name: e.target.value}))} className="w-full px-2 py-1 border rounded" /></td>
+                      <td className="px-6 py-4"><input type="text" value={categoryFormData.description} onChange={(e) => setCategoryFormData(prev => ({...prev, description: e.target.value}))} className="w-full px-2 py-1 border rounded" /></td>
+                      <td className="px-6 py-4"><input type="number" value={categoryFormData.price} onChange={(e) => setCategoryFormData(prev => ({...prev, price: parseInt(e.target.value)}))} className="w-full px-2 py-1 border rounded" /></td>
+                      <td className="px-6 py-4">
+                        <div className="flex space-x-2">
+                          <button onClick={handleSaveCategory} className="p-2 text-green-600 hover:bg-green-50 rounded"><Save size={16} /></button>
+                          <button onClick={handleCancelCategory} className="p-2 text-gray-600 hover:bg-gray-50 rounded">✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={category.id}>
+                      <td className="px-6 py-4 font-medium">{category.code}</td>
+                      <td className="px-6 py-4">{category.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{category.description}</td>
+                      <td className="px-6 py-4">Rp {category.price.toLocaleString('id-ID')}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex space-x-2">
+                          <button onClick={() => handleEditCategory(category)} className="p-2 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button>
+                          {!category.isDefault && <button onClick={() => handleDeleteCategory(category.id)} className="p-2 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>}
+                        </div>
+                      </td>
+                    </tr>
+                  )
                 ))}
-            </div>
+                {isAddingCategory && (
+                  <tr>
+                    <td className="px-6 py-4"><input type="text" value={categoryFormData.code} onChange={(e) => setCategoryFormData(prev => ({...prev, code: e.target.value}))} className="w-full px-2 py-1 border rounded" placeholder="C1" /></td>
+                    <td className="px-6 py-4"><input type="text" value={categoryFormData.name} onChange={(e) => setCategoryFormData(prev => ({...prev, name: e.target.value}))} className="w-full px-2 py-1 border rounded" placeholder="SIM C1" /></td>
+                    <td className="px-6 py-4"><input type="text" value={categoryFormData.description} onChange={(e) => setCategoryFormData(prev => ({...prev, description: e.target.value}))} className="w-full px-2 py-1 border rounded" placeholder="Deskripsi" /></td>
+                    <td className="px-6 py-4"><input type="number" value={categoryFormData.price} onChange={(e) => setCategoryFormData(prev => ({...prev, price: parseInt(e.target.value)}))} className="w-full px-2 py-1 border rounded" placeholder="0" /></td>
+                    <td className="px-6 py-4">
+                      <div className="flex space-x-2">
+                        <button onClick={handleSaveCategory} className="p-2 text-green-600 hover:bg-green-50 rounded"><Save size={16} /></button>
+                        <button onClick={handleCancelCategory} className="p-2 text-gray-600 hover:bg-gray-50 rounded">✕</button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* SIM A */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Biaya SIM A
-              </label>
-              {isFeeEditing ? (
-                <input
-                  type="number"
-                  value={feeFormData.simA}
-                  onChange={(e) => handleFeeInputChange("simA", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0"
-                />
-              ) : (
-                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  Rp {fees.simA.toLocaleString("id-ID")}
-                </p>
-              )}
-            </div>
-
-            {/* SIM B1 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Biaya SIM B1
-              </label>
-              {isFeeEditing ? (
-                <input
-                  type="number"
-                  value={feeFormData.simB1}
-                  onChange={(e) =>
-                    handleFeeInputChange("simB1", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0"
-                />
-              ) : (
-                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  Rp {fees.simB1.toLocaleString("id-ID")}
-                </p>
-              )}
-            </div>
-
-            {/* SIM B2 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Biaya SIM B2
-              </label>
-              {isFeeEditing ? (
-                <input
-                  type="number"
-                  value={feeFormData.simB2}
-                  onChange={(e) =>
-                    handleFeeInputChange("simB2", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0"
-                />
-              ) : (
-                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  Rp {fees.simB2.toLocaleString("id-ID")}
-                </p>
-              )}
-            </div>
-
-            {/* SIM C */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Biaya SIM C
-              </label>
-              {isFeeEditing ? (
-                <input
-                  type="number"
-                  value={feeFormData.simC}
-                  onChange={(e) => handleFeeInputChange("simC", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0"
-                />
-              ) : (
-                <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  Rp {fees.simC.toLocaleString("id-ID")}
-                </p>
-              )}
-            </div>
-          </div>
-          </>
-          )}
         </div>
       )}
 
