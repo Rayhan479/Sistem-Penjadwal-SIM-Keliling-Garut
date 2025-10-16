@@ -38,10 +38,32 @@ export default function AdminLayout() {
       .catch(() => router.push('/login'));
   }, [router]);
 
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 menit
+
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        alert('Sesi Anda telah berakhir karena tidak aktif selama 30 menit.');
+        router.push('/login');
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => window.addEventListener(event, resetTimer));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeout);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [router]);
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
-    router.refresh();
   };
 
   if (!user) {
